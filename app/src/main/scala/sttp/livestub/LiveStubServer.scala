@@ -57,7 +57,7 @@ object LiveStubServer extends IOApp with Tapir {
     endpoint
       .in(
         (extractFromRequest(_.method) and paths)
-          .map(s => Request.apply(s._1, s._2))(r => r.method -> r.path.split("/"))
+          .map(s => Request.apply(s._1, s._2))(r => r.method -> r.path.split("/").toIndexedSeq)
       )
       .out(statusCode and jsonBody[Json])
       .errorOut(statusCode and stringBody)

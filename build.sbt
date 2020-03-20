@@ -1,18 +1,5 @@
 import com.softwaremill.PublishTravis.publishTravisSettings
 
-name := "livestub"
-version := "0.1.0"
-scalaVersion := "2.13.1"
-
-organization := "sttp.livestub"
-scalafmtOnCompile := true
-scmInfo := Some(
-  ScmInfo(
-    url("https://github.com/softwaremill/livestub"),
-    "git@github.com:softwaremill/livestub.git"
-  )
-)
-
 val http4sVersion = "0.21.0-M5"
 val circeVersion = "0.12.2"
 val tapirVersion = "0.12.20"
@@ -27,12 +14,6 @@ val jsonDependencies = Seq(
   "com.beachape" %% "enumeratum-circe" % "1.5.21"
 )
 
-libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion
-) ++ jsonDependencies
-
 lazy val dockerSettings = Seq(
   dockerExposedPorts := Seq(7070),
   dockerBaseImage := "openjdk:8u212-jdk-stretch",
@@ -41,10 +22,35 @@ lazy val dockerSettings = Seq(
   dockerUpdateLatest := true
 )
 
-lazy val rootProject = (project in file("."))
-  .settings(publishTravisSettings)
-  .settings(commonSmlBuildSettings)
-  .settings(ossPublishSettings)
+lazy val commonSettings = commonSmlBuildSettings ++ ossPublishSettings ++ acyclicSettings ++ Seq(
+  organization := "sttp.livestub",
+  scalaVersion := "2.13.1",
+  scalafmtOnCompile := true,
+  libraryDependencies ++= Seq(compilerPlugin("com.softwaremill.neme" %% "neme-plugin" % "0.0.5")),
+  scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/softwaremill/livestub"),
+      "git@github.com:softwaremill/livestub.git"
+    )
+  )
+)
+
+lazy val app: Project = (project in file("app"))
+  .settings(commonSettings)
   .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .settings(dockerSettings)
+  .settings(
+    name := "livestub-app",
+    libraryDependencies ++= Seq(
+      "org.http4s" %% "http4s-dsl" % http4sVersion,
+      "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+      "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion
+    ) ++ jsonDependencies
+  )
+
+lazy val rootProject = (project in file("."))
+  .settings(commonSettings)
+  .settings(publishArtifact := false, name := "livestub")
+  .settings(publishTravisSettings)
+  .aggregate(app)
