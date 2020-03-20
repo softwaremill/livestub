@@ -43,6 +43,7 @@ lazy val dockerSettings = Seq(
 
 lazy val rootProject = (project in file("."))
   .settings(publishTravisSettings)
+  .settings(commonSmlBuildSettings)
   .settings(ossPublishSettings)
   .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
