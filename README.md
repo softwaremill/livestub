@@ -18,7 +18,8 @@
 
 ### stub
 ```
-curl -X POST 'localhost:7070/__set' -d '{"when":{"method":"GET", "path":"animals/1/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
+curl -X POST 'localhost:7070/__set' \
+-d '{"when":{"method":"GET", "path":"animals/1/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
 ```
 
 ### invoke
