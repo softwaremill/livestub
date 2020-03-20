@@ -2,8 +2,10 @@ package sttp.livestub
 
 import java.util.concurrent.ConcurrentHashMap
 
-import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.effect.{ContextShift, ExitCode, IO, Resource, Sync, Timer}
 import cats.implicits._
+import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.generic.auto._
 import io.circe.{Decoder, Encoder, Json}
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -18,8 +20,10 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s._
 
 import scala.collection._
+import scala.concurrent.ExecutionContext
 
-object LiveStubServer extends IOApp with Tapir {
+class LiveStubServer(port: Int, quiet: Boolean) extends Tapir {
+  private implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
 
   implicit val cMethod: PlainCodec[Method] =
     Codec.stringPlainCodecUtf8.map(str => Method.unsafeApply(str))(_.method)
@@ -39,7 +43,7 @@ object LiveStubServer extends IOApp with Tapir {
 
   private val responses = new IoMap[Request, Response]()
 
-  override def run(args: List[String]): IO[ExitCode] =
+  def run(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
   val setupEndpoint: ServerEndpoint[MockEndpointRequest, Unit, MockEndpointResponse, Nothing, IO] =
@@ -62,7 +66,7 @@ object LiveStubServer extends IOApp with Tapir {
       .out(statusCode and jsonBody[Json])
       .errorOut(statusCode and stringBody)
       .serverLogic { request =>
-        responses
+        logRequest(request) >> responses
           .get(request)
           .map(response =>
             response
@@ -74,10 +78,17 @@ object LiveStubServer extends IOApp with Tapir {
           )
       }
 
-  val app: Resource[IO, Server[IO]] =
+  private def logRequest(request: Request) =
+    if (!quiet) {
+      Logger[IO].info(s"Got request: $request")
+    } else {
+      IO.unit
+    }
+
+  def app(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): Resource[IO, Server[IO]] =
     for {
       server <- BlazeServerBuilder[IO]
-        .bindHttp(7070, "0.0.0.0")
+        .bindHttp(port, "0.0.0.0")
         .withHttpApp(
           Router("/" -> List(setupEndpoint, catchEndpoint).toRoutes).orNotFound
         )

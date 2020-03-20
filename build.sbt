@@ -6,12 +6,14 @@ val tapirVersion = "0.12.20"
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
-  "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-enumeratum" % tapirVersion,
-  "com.beachape" %% "enumeratum" % "1.5.15",
-  "com.beachape" %% "enumeratum-circe" % "1.5.21"
+  "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion
+)
+
+val loggingDependencies = Seq(
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1"
 )
 
 lazy val dockerSettings = Seq(
@@ -45,8 +47,11 @@ lazy val app: Project = (project in file("app"))
     libraryDependencies ++= Seq(
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-      "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion
-    ) ++ jsonDependencies
+      "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
+      "com.monovore" %% "decline" % "1.0.0",
+      "org.typelevel" %% "cats-core" % "2.0.0",
+      "com.monovore" %% "decline-effect" % "1.0.0"
+    ) ++ jsonDependencies ++ loggingDependencies
   )
 
 lazy val rootProject = (project in file("."))
