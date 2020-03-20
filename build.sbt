@@ -1,3 +1,5 @@
+import com.softwaremill.PublishTravis.publishTravisSettings
+
 name := "livestub"
 
 version := "0.1"
@@ -21,3 +23,7 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion
 ) ++ jsonDependencies
+
+lazy val rootProject = (project in file("."))
+  .settings(publishTravisSettings)
+  .settings(ossPublishSettings)
