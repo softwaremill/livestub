@@ -23,7 +23,7 @@ lazy val dockerSettings = Seq(
 )
 
 lazy val commonSettings = commonSmlBuildSettings ++ ossPublishSettings ++ acyclicSettings ++ Seq(
-  organization := "sttp.livestub",
+  organization := "com.softwaremill.sttp.livestub",
   scalaVersion := "2.13.1",
   scalafmtOnCompile := true,
   libraryDependencies ++= Seq(compilerPlugin("com.softwaremill.neme" %% "neme-plugin" % "0.0.5")),
