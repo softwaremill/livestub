@@ -42,11 +42,7 @@ object LiveStubServer extends IOApp with Tapir {
   override def run(args: List[String]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
-  val setupEndpoint: ServerEndpoint[MockEndpointRequest,
-                                    Unit,
-                                    MockEndpointResponse,
-                                    Nothing,
-                                    IO] =
+  val setupEndpoint: ServerEndpoint[MockEndpointRequest, Unit, MockEndpointResponse, Nothing, IO] =
     endpoint.post
       .in("__set")
       .in(jsonBody[MockEndpointRequest])
@@ -57,32 +53,23 @@ object LiveStubServer extends IOApp with Tapir {
           .map(_ => MockEndpointResponse().asRight[Unit])
       }
 
-  val catchEndpoint: ServerEndpoint[Request,
-                                    (StatusCode, String),
-                                    (StatusCode, Json),
-                                    Nothing,
-                                    IO] =
+  val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Json), Nothing, IO] =
     endpoint
       .in(
         (extractFromRequest(_.method) and paths)
-          .map(s => Request.apply(s._1, s._2))(
-            r => r.method -> r.path.split("/")
-          )
+          .map(s => Request.apply(s._1, s._2))(r => r.method -> r.path.split("/"))
       )
       .out(statusCode and jsonBody[Json])
       .errorOut(statusCode and stringBody)
       .serverLogic { request =>
         responses
           .get(request)
-          .map(
-            response =>
-              response
-                .map(
-                  r => (r.statusCode -> r.body).asRight[(StatusCode, String)]
-                )
-                .getOrElse(
-                  (StatusCode.NotFound -> "Not mocked.")
-                    .asLeft[(StatusCode, Json)]
+          .map(response =>
+            response
+              .map(r => (r.statusCode -> r.body).asRight[(StatusCode, String)])
+              .getOrElse(
+                (StatusCode.NotFound -> "Not mocked.")
+                  .asLeft[(StatusCode, Json)]
               )
           )
       }
