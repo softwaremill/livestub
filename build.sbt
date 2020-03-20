@@ -33,6 +33,17 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion
 ) ++ jsonDependencies
 
+lazy val dockerSettings = Seq(
+  dockerExposedPorts := Seq(7070),
+  dockerBaseImage := "openjdk:8u212-jdk-stretch",
+  dockerUsername := Some("softwaremill"),
+  packageName in Docker := "sttp.livestub",
+  dockerUpdateLatest := true
+)
+
 lazy val rootProject = (project in file("."))
   .settings(publishTravisSettings)
   .settings(ossPublishSettings)
+  .enablePlugins(DockerPlugin)
+  .enablePlugins(JavaServerAppPackaging)
+  .settings(dockerSettings)

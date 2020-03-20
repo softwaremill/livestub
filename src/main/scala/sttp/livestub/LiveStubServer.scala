@@ -77,7 +77,7 @@ object LiveStubServer extends IOApp with Tapir {
   val app: Resource[IO, Server[IO]] =
     for {
       server <- BlazeServerBuilder[IO]
-        .bindHttp(7070)
+        .bindHttp(7070, "0.0.0.0")
         .withHttpApp(
           Router("/" -> List(setupEndpoint, catchEndpoint).toRoutes).orNotFound
         )
