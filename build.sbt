@@ -2,7 +2,8 @@ import com.softwaremill.PublishTravis.publishTravisSettings
 
 val http4sVersion = "0.21.1"
 val circeVersion = "0.12.2"
-val tapirVersion = "0.12.20"
+val tapirVersion = "0.12.25"
+
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
@@ -14,6 +15,12 @@ val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1"
+)
+
+val apiDocsDependencies = Seq(
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % tapirVersion,
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % tapirVersion,
+  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % tapirVersion
 )
 
 lazy val dockerSettings = Seq(
@@ -49,13 +56,24 @@ lazy val app: Project = (project in file("app"))
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
       "com.monovore" %% "decline" % "1.0.0",
-      "org.typelevel" %% "cats-core" % "2.0.0",
-      "com.monovore" %% "decline-effect" % "1.0.0"
-    ) ++ jsonDependencies ++ loggingDependencies
+      "org.typelevel" %% "cats-core" % "2.1.1",
+      "com.monovore" %% "decline-effect" % "1.0.0",
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test
+    ) ++ loggingDependencies ++ apiDocsDependencies
+  )
+  .dependsOn(api)
+
+lazy val api: Project = (project in file("api"))
+  .settings(commonSettings)
+  .settings(
+    name := "livestub-api",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion
+    ) ++ jsonDependencies
   )
 
 lazy val rootProject = (project in file("."))
   .settings(commonSettings)
   .settings(publishArtifact := false, name := "livestub")
   .settings(publishTravisSettings)
-  .aggregate(app)
+  .aggregate(app, api)
