@@ -3,6 +3,8 @@ package sttp.livestub
 import java.util.concurrent.ConcurrentHashMap
 
 import cats.effect.IO
+import cats.implicits._
+import scala.jdk.CollectionConverters._
 
 class IoMap[K, V]() {
   private val map = new ConcurrentHashMap[K, V]()
@@ -18,4 +20,15 @@ class IoMap[K, V]() {
   def clear(): IO[Unit] = {
     IO.delay(map.clear())
   }
+
+  def getOrPut(k: K, v: => V): IO[V] = {
+    get(k).flatMap {
+      case Some(value) => value.pure[IO]
+      case None =>
+        val v1 = v // materialize lazy value
+        put(k, v1).as(v1)
+    }
+  }
+
+  override def toString: String = map.asScala.toString()
 }

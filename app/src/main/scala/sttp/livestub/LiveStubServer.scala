@@ -22,7 +22,7 @@ import scala.concurrent.ExecutionContext
 class LiveStubServer(port: Int, quiet: Boolean) {
   private implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
 
-  private val responses = new IoMap[Request, Response]()
+  private val stubbedCalls = StubsRepository()
 
   def run(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
@@ -31,7 +31,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
     LiveStubApi.setupEndpoint
       .serverLogic { req =>
         log(s"Got mocking request $req") >>
-          responses
+          stubbedCalls
             .put(req.`when`, req.`then`)
             .map(_ => MockEndpointResponse().asRight[Unit])
       }
@@ -39,20 +39,21 @@ class LiveStubServer(port: Int, quiet: Boolean) {
   val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Json), Nothing, IO] =
     LiveStubApi.catchEndpoint
       .serverLogic { request =>
-        log(s"Got request: $request") >> responses
-          .get(request)
-          .map(response =>
-            response
-              .map(r => (r.statusCode -> r.body).asRight[(StatusCode, String)])
-              .getOrElse(
-                (StatusCode.NotFound -> "Not mocked.")
-                  .asLeft[(StatusCode, Json)]
-              )
-          )
+        log(s"Got request: $request") >>
+          stubbedCalls
+            .get(request)
+            .map(response =>
+              response
+                .map(r => (r.statusCode -> r.body).asRight[(StatusCode, String)])
+                .getOrElse(
+                  (StatusCode.NotFound -> "Not mocked.")
+                    .asLeft[(StatusCode, Json)]
+                )
+            )
       }
 
   val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Nothing, IO] =
-    LiveStubApi.clearEndpoint.serverLogic(_ => responses.clear().map(_.asRight[Unit]))
+    LiveStubApi.clearEndpoint.serverLogic(_ => stubbedCalls.clear().map(_.asRight[Unit]))
 
   private def log(message: String) =
     if (!quiet) {
