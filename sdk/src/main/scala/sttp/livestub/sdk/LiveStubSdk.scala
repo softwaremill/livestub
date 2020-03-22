@@ -1,9 +1,9 @@
 package sttp.livestub.sdk
 
-import io.circe.{Encoder, Json}
+import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.{Request, SttpBackend, Response => SttpResponse}
 import sttp.livestub.api._
-import sttp.model.{StatusCode, Uri}
+import sttp.model.Uri
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp._
 
