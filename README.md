@@ -7,7 +7,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp.livestub/livestub-app_2.13/badge.svg)](https://search.maven.org/search?q=g:com.softwaremill.sttp.livestub)
 
 
-With livestub you can easly setup http server that behaves exactly as you would like it to. That makes livestub a perfect solution for faking arbitrary services which might be very usefull in development/testing.
+With livestub you can easly setup http server that behaves exactly as you would like it to. That makes livestub a perfect solution for faking arbitrary services which might be very useful in development/testing.
 
 ## Usage
 
