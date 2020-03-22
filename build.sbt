@@ -3,6 +3,7 @@ import com.softwaremill.PublishTravis.publishTravisSettings
 val http4sVersion = "0.21.0-M5"
 val circeVersion = "0.12.2"
 val tapirVersion = "0.12.20"
+
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
@@ -14,6 +15,12 @@ val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1"
+)
+
+val apiDocsDependencies = Seq(
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % tapirVersion,
+  "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % tapirVersion,
+  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % tapirVersion
 )
 
 lazy val dockerSettings = Seq(
@@ -51,7 +58,7 @@ lazy val app: Project = (project in file("app"))
       "com.monovore" %% "decline" % "1.0.0",
       "org.typelevel" %% "cats-core" % "2.0.0",
       "com.monovore" %% "decline-effect" % "1.0.0"
-    ) ++ loggingDependencies
+    ) ++ loggingDependencies ++ apiDocsDependencies
   )
   .dependsOn(api)
 
