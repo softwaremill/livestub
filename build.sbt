@@ -51,11 +51,21 @@ lazy val app: Project = (project in file("app"))
       "com.monovore" %% "decline" % "1.0.0",
       "org.typelevel" %% "cats-core" % "2.0.0",
       "com.monovore" %% "decline-effect" % "1.0.0"
-    ) ++ jsonDependencies ++ loggingDependencies
+    ) ++ loggingDependencies
+  )
+  .dependsOn(api)
+
+lazy val api: Project = (project in file("api"))
+  .settings(commonSettings)
+  .settings(
+    name := "livestub-api",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion
+    ) ++ jsonDependencies
   )
 
 lazy val rootProject = (project in file("."))
   .settings(commonSettings)
   .settings(publishArtifact := false, name := "livestub")
   .settings(publishTravisSettings)
-  .aggregate(app)
+  .aggregate(app, api)
