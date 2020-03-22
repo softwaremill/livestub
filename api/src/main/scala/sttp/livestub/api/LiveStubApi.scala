@@ -29,19 +29,6 @@ object LiveStubApi extends Tapir {
     case other => MethodValue.FixedMethod(Method.unsafeApply(other))
   }
 
-  implicit val requestPathSchema: Schema[RequestPath] = Schema(SString)
-  implicit val requestPathValidator: Validator[RequestPath] = Validator.pass
-  implicit val requestPathEncoder: Encoder[RequestPath] = {
-    def pathElementToString(p: PathElement): String = p match {
-      case PathElement.Fixed(path)   => path
-      case PathElement.Wildcard      => "*"
-      case PathElement.MultiWildcard => "**"
-    }
-    Encoder.encodeString.contramap(_.paths.map(pathElementToString).mkString("/"))
-  }
-
-  implicit val requestPathDecoder: Decoder[RequestPath] = Decoder.decodeString.map(RequestPath.fromString)
-
   implicit val requestPathAndQuerySchema: Schema[RequestPathAndQuery] = Schema(SString)
   implicit val requestPathAndQueryValidator: Validator[RequestPathAndQuery] = Validator.pass
   implicit val requestPathAndQueryEncoder: Encoder[RequestPathAndQuery] = {
@@ -150,12 +137,6 @@ object RequestPathAndQuery {
         )
     }
   }
-}
-
-case class RequestPath(paths: List[PathElement])
-object RequestPath {
-  def fromString(str: String): RequestPath =
-    RequestPath(str.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString))
 }
 
 case class RequestQuery(queries: ListSet[QueryElement]) {

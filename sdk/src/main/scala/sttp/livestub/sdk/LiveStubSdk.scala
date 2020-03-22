@@ -15,7 +15,7 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebS
       uri,
       RequestStub(
         MethodValue.FixedMethod(sttpRequest.method),
-        RequestPath(sttpRequest.uri.path.map(PathElement.Fixed).toList)
+        List(sttpRequest.uri.path.mkString("/"), sttpRequest.uri.querySegments.mkString("&")).mkString("?")
       )
     )
   }
@@ -25,7 +25,7 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebS
       uri,
       RequestStub(
         endpoint.httpMethod.map(MethodValue.FixedMethod).getOrElse(MethodValue.Wildcard),
-        RequestPath.fromString(endpoint.renderPathTemplate((_, _) => "*", Some((_, _) => "*"), includeAuth = false))
+        endpoint.renderPathTemplate((_, _) => "*", Some((_, _) => "*"), includeAuth = false)
       )
     )
   }
