@@ -14,4 +14,8 @@ class IoMap[K, V]() {
   def get(k: K): IO[Option[V]] = {
     IO.delay(Option(map.get(k)))
   }
+
+  def clear(): IO[Unit] = {
+    IO.delay(map.clear())
+  }
 }

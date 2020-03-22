@@ -26,15 +26,16 @@ class LiveStubServer(port: Int, quiet: Boolean) {
   val setupEndpoint: ServerEndpoint[MockEndpointRequest, Unit, MockEndpointResponse, Nothing, IO] =
     LiveStubApi.setupEndpoint
       .serverLogic { req =>
-        responses
-          .put(req.`when`, req.`then`)
-          .map(_ => MockEndpointResponse().asRight[Unit])
+        log(s"Got mocking request $req") >>
+          responses
+            .put(req.`when`, req.`then`)
+            .map(_ => MockEndpointResponse().asRight[Unit])
       }
 
   val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Json), Nothing, IO] =
     LiveStubApi.catchEndpoint
       .serverLogic { request =>
-        logRequest(request) >> responses
+        log(s"Got request: $request") >> responses
           .get(request)
           .map(response =>
             response
@@ -46,9 +47,12 @@ class LiveStubServer(port: Int, quiet: Boolean) {
           )
       }
 
-  private def logRequest(request: Request) =
+  val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Nothing, IO] =
+    LiveStubApi.clearEndpoint.serverLogic(_ => responses.clear().map(_.asRight[Unit]))
+
+  private def log(message: String) =
     if (!quiet) {
-      Logger[IO].info(s"Got request: $request")
+      Logger[IO].info(message)
     } else {
       IO.unit
     }
@@ -58,7 +62,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       server <- BlazeServerBuilder[IO]
         .bindHttp(port, "0.0.0.0")
         .withHttpApp(
-          Router("/" -> List(setupEndpoint, catchEndpoint).toRoutes).orNotFound
+          Router("/" -> List(setupEndpoint, catchEndpoint, clearEndpoint).toRoutes).orNotFound
         )
         .resource
     } yield server

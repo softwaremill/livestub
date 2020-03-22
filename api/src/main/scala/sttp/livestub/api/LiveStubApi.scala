@@ -42,6 +42,8 @@ object LiveStubApi extends Tapir {
       )
       .out(statusCode and jsonBody[Json])
       .errorOut(statusCode and stringBody)
+
+  val clearEndpoint: Endpoint[Unit, Unit, Unit, Nothing] = endpoint.post.in("__clear")
 }
 
 case class MockEndpointRequest(`when`: Request, `then`: Response)
