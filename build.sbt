@@ -2,7 +2,7 @@ import com.softwaremill.PublishTravis.publishTravisSettings
 
 val http4sVersion = "0.21.0-M5"
 val circeVersion = "0.12.2"
-val tapirVersion = "0.12.20"
+val tapirVersion = "0.12.25"
 
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
