@@ -31,6 +31,10 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebS
       )
     )
   }
+
+  def when(requestStub: RequestStub): OutgoingStubbing[F] = {
+    new OutgoingStubbing(uri, requestStub)
+  }
 }
 
 class OutgoingStubbing[F[_]](uri: Uri, requestStub: RequestStub)(
