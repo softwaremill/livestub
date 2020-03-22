@@ -1,120 +1,88 @@
 package sttp.livestub
 
-import java.util.concurrent.ConcurrentHashMap
-
 import cats.effect.{ContextShift, ExitCode, IO, Resource, Sync, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import io.circe.generic.auto._
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.Json
+import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.server.{Router, Server}
 import org.http4s.syntax.kleisli._
-import sttp.model.{Method, StatusCode}
-import sttp.tapir.Codec.PlainCodec
-import sttp.tapir.SchemaType.{SInteger, SString}
-import sttp.tapir._
-import sttp.tapir.json.circe._
+import sttp.livestub.api._
+import sttp.model.StatusCode
+import sttp.tapir.docs.openapi._
+import sttp.tapir.openapi.Server
+import sttp.tapir.openapi.circe.yaml._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s._
+import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
-import scala.collection._
 import scala.concurrent.ExecutionContext
 
-class LiveStubServer(port: Int, quiet: Boolean) extends Tapir {
+class LiveStubServer(port: Int, quiet: Boolean) {
   private implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
 
-  implicit val cMethod: PlainCodec[Method] =
-    Codec.stringPlainCodecUtf8.map(str => Method.unsafeApply(str))(_.method)
-
-  implicit val sMethod: Schema[Method] = Schema(SString)
-  implicit val sStatusCode: Schema[StatusCode] = Schema(SInteger)
-  implicit val methodEncoder: Encoder[Method] =
-    Encoder.encodeString.contramap(_.method)
-  implicit val methodDecoder: Decoder[Method] =
-    Decoder.decodeString.map(s => Method.unsafeApply(s))
-  implicit val statusCodeEncoder: Encoder[StatusCode] =
-    Encoder.encodeInt.contramap(_.code)
-  implicit val statusCodeDecoder: Decoder[StatusCode] =
-    Decoder.decodeInt.map(StatusCode.unsafeApply)
-  implicit val vMethod: Validator[Method] = Validator.pass[Method]
-  implicit val vStatusCode: Validator[StatusCode] = Validator.pass[StatusCode]
-
-  private val responses = new IoMap[Request, Response]()
+  private val stubbedCalls = StubsRepository()
 
   def run(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
   val setupEndpoint: ServerEndpoint[MockEndpointRequest, Unit, MockEndpointResponse, Nothing, IO] =
-    endpoint.post
-      .in("__set")
-      .in(jsonBody[MockEndpointRequest])
-      .out(jsonBody[MockEndpointResponse])
+    LiveStubApi.setupEndpoint
       .serverLogic { req =>
-        responses
-          .put(req.`when`, req.`then`)
-          .map(_ => MockEndpointResponse().asRight[Unit])
+        log(s"Got mocking request $req") >>
+          stubbedCalls
+            .put(req.`when`, req.`then`)
+            .map(_ => MockEndpointResponse().asRight[Unit])
       }
 
   val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Json), Nothing, IO] =
-    endpoint
-      .in(
-        (extractFromRequest(_.method) and paths)
-          .map(s => Request.apply(s._1, s._2))(r => r.method -> r.path.split("/").toIndexedSeq)
-      )
-      .out(statusCode and jsonBody[Json])
-      .errorOut(statusCode and stringBody)
+    LiveStubApi.catchEndpoint
       .serverLogic { request =>
-        logRequest(request) >> responses
-          .get(request)
-          .map(response =>
-            response
-              .map(r => (r.statusCode -> r.body).asRight[(StatusCode, String)])
-              .getOrElse(
-                (StatusCode.NotFound -> "Not mocked.")
-                  .asLeft[(StatusCode, Json)]
-              )
-          )
+        log(s"Got request: $request") >>
+          stubbedCalls
+            .get(request)
+            .map(response =>
+              response
+                .map(r => (r.statusCode -> r.body).asRight[(StatusCode, String)])
+                .getOrElse(
+                  (StatusCode.NotFound -> "Not mocked.")
+                    .asLeft[(StatusCode, Json)]
+                )
+            )
       }
 
-  private def logRequest(request: Request) =
+  val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Nothing, IO] =
+    LiveStubApi.clearEndpoint.serverLogic(_ => stubbedCalls.clear().map(_.asRight[Unit]))
+
+  private def log(message: String) =
     if (!quiet) {
-      Logger[IO].info(s"Got request: $request")
+      Logger[IO].info(message)
     } else {
       IO.unit
     }
 
-  def app(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): Resource[IO, Server[IO]] =
-    for {
-      server <- BlazeServerBuilder[IO]
-        .bindHttp(port, "0.0.0.0")
-        .withHttpApp(
-          Router("/" -> List(setupEndpoint, catchEndpoint).toRoutes).orNotFound
-        )
-        .resource
-    } yield server
-}
+  private val endpoints = List(setupEndpoint, catchEndpoint, clearEndpoint)
 
-case class MockEndpointRequest(`when`: Request, `then`: Response)
-case class Request(method: Method, path: String)
-object Request {
-  def apply(method: Method, paths: Seq[String]): Request = {
-    new Request(method, paths.mkString("/"))
-  }
-}
+  private def app(
+      implicit ec: ExecutionContext,
+      contextShift: ContextShift[IO],
+      timer: Timer[IO]
+  ): Resource[IO, Unit] =
+    BlazeServerBuilder[IO]
+      .bindHttp(port, "0.0.0.0")
+      .withHttpApp(
+        Router("/__admin" -> docsRoutes.routes[IO], "/" -> endpoints.toRoutes).orNotFound
+      )
+      .resource
+      .void
 
-case class Response(body: Json, statusCode: StatusCode)
-case class MockEndpointResponse()
-
-class IoMap[K, V]() {
-  private val map = new ConcurrentHashMap[K, V]()
-
-  def put(k: K, v: V): IO[Unit] = {
-    IO.delay(map.put(k, v))
-  }
-
-  def get(k: K): IO[Option[V]] = {
-    IO.delay(Option(map.get(k)))
+  private val docsRoutes: SwaggerHttp4s = {
+    val openapi =
+      endpoints
+        .toOpenAPI("Trading-Offering", "1.0")
+        .copy(servers = List(Server("/", None)))
+    val yaml = openapi.toYaml
+    new SwaggerHttp4s(yaml)
   }
 }
