@@ -1,15 +1,17 @@
 package sttp.livestub.api
 
-import io.circe.generic.auto._
 import io.circe.{Decoder, Encoder, Json}
-import sttp.model.{Method, MultiQueryParams, StatusCode, Uri}
+import sttp.model._
 import sttp.tapir.SchemaType.{SInteger, SString}
 import sttp.tapir.json.circe._
 import sttp.tapir.{Endpoint, Schema, Tapir, Validator}
 
 import scala.collection.immutable.ListSet
+import io.circe.generic.extras.{AutoDerivation, Configuration}
 
-object LiveStubApi extends Tapir {
+object LiveStubApi extends Tapir with AutoDerivation {
+
+  implicit val config: Configuration = Configuration.default.withDefaults
 
   implicit val sStatusCode: Schema[StatusCode] = Schema(SInteger)
   implicit val statusCodeEncoder: Encoder[StatusCode] =
@@ -57,7 +59,7 @@ object LiveStubApi extends Tapir {
       .in(jsonBody[StubEndpointRequest])
       .out(jsonBody[StubEndpointResponse])
 
-  val catchEndpoint: Endpoint[Request, (StatusCode, String), (StatusCode, Json), Nothing] =
+  val catchEndpoint: Endpoint[Request, (StatusCode, String), (StatusCode, Json, Seq[(String, String)]), Nothing] =
     endpoint
       .in(
         (extractFromRequest(_.method) and paths and queryParams)
@@ -65,7 +67,7 @@ object LiveStubApi extends Tapir {
             (r.method.method, r.paths.map(_.path), MultiQueryParams.fromMultiSeq(r.queries.map(q => q.key -> q.values)))
           )
       )
-      .out(statusCode and jsonBody[Json])
+      .out(statusCode and jsonBody[Json] and headers)
       .errorOut(statusCode and stringBody)
 
   val clearEndpoint: Endpoint[Unit, Unit, Unit, Nothing] = endpoint.post.in("__clear")
@@ -97,7 +99,7 @@ object Request {
   }
 }
 
-case class Response(body: Json, statusCode: StatusCode)
+case class Response(body: Json, statusCode: StatusCode, headers: List[ResponseHeader] = List.empty)
 case class StubEndpointResponse()
 
 case class RequestStub(method: MethodValue, url: RequestPathAndQuery)
@@ -184,3 +186,5 @@ object QueryElement {
   case class WildcardValueQuery(key: String) extends QueryElement
   case object WildcardQuery extends QueryElement
 }
+
+case class ResponseHeader(name: String, value: String)

@@ -44,13 +44,17 @@ class OutgoingStubbing[F[_]](uri: Uri, requestStub: RequestStub)(
     thenRespond(statusCode, implicitly[Encoder[T]].apply(response))
   }
 
-  def thenRespond(statusCode: StatusCode, json: Json): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
+  def thenRespond(
+      statusCode: StatusCode,
+      json: Json,
+      headers: Seq[ResponseHeader] = Seq.empty
+  ): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
     LiveStubApi.setupEndpoint
       .toSttpRequestUnsafe(uri)
       .apply(
         StubEndpointRequest(
           requestStub,
-          Response(json, statusCode)
+          Response(json, statusCode, headers)
         )
       )
       .send()

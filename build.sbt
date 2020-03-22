@@ -7,6 +7,7 @@ val tapirVersion = "0.12.25"
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-generic-extras" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion
 )
