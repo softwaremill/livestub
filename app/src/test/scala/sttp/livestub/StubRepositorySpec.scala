@@ -11,7 +11,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   "StubRepositorySpec" should "return response for single fragment path" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), response).unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response
@@ -25,7 +25,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "return response for multi fragment path" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/docs"), response)
       .unsafeRunSync()
@@ -35,8 +35,8 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "distinguish when path contains another subpath" in {
     val repository = StubsRepositoryImpl()
-    val response1 = Response(Json.fromString("OK"), StatusCode.Ok)
-    val response2 = Response(Json.fromString("Bad"), StatusCode.BadRequest)
+    val response1 = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
+    val response2 = Response.withJsonBody(Json.fromString("Bad"), StatusCode.BadRequest)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/docs"), response1)
       .unsafeRunSync()
@@ -48,7 +48,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support wildcard paths" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), "/*"), response).unsafeRunSync()
 
     repository.get(Request(Method.GET, "/docs")).unsafeRunSync().value shouldBe response
@@ -57,8 +57,8 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "distinguish between wildcard path and direct path" in {
     val repository = StubsRepositoryImpl()
-    val response1 = Response(Json.fromString("OK"), StatusCode.Ok)
-    val response2 = Response(Json.fromString("Bad"), StatusCode.BadRequest)
+    val response1 = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
+    val response2 = Response.withJsonBody(Json.fromString("Bad"), StatusCode.BadRequest)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/*"), response1)
       .unsafeRunSync()
@@ -70,7 +70,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support wildcard methods" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository.put(RequestStub(MethodValue.Wildcard, "/admin"), response).unsafeRunSync()
 
     repository.get(Request(Method.POST, "/admin")).unsafeRunSync().value shouldBe response
@@ -79,7 +79,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "only resolve wildcard path elements on a single level" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/*"), response)
       .unsafeRunSync()
@@ -90,7 +90,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "resolve multi wildcards globally" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/**"), response)
       .unsafeRunSync()
@@ -101,8 +101,8 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "recursively search for multi wildcard in upstream routes" in {
     val repository = StubsRepositoryImpl()
-    val response1 = Response(Json.fromString("OK"), StatusCode.Ok)
-    val response2 = Response(Json.fromString("..."), StatusCode.BadGateway)
+    val response1 = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
+    val response2 = Response.withJsonBody(Json.fromString("..."), StatusCode.BadGateway)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/**"), response1)
       .unsafeRunSync()
@@ -118,9 +118,9 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support combining wildcard with multi wildcard" in {
     val repository = StubsRepositoryImpl()
-    val response1 = Response(Json.fromString("OK - 1"), StatusCode.Ok)
-    val response2 = Response(Json.fromString("OK - 2"), StatusCode.Ok)
-    val response3 = Response(Json.fromString("OK - 3"), StatusCode.Ok)
+    val response1 = Response.withJsonBody(Json.fromString("OK - 1"), StatusCode.Ok)
+    val response2 = Response.withJsonBody(Json.fromString("OK - 2"), StatusCode.Ok)
+    val response3 = Response.withJsonBody(Json.fromString("OK - 3"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/**"), response1)
       .unsafeRunSync()
@@ -143,7 +143,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support query params" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true"), response)
       .unsafeRunSync()
@@ -154,7 +154,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support wildcard for query params" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=*"), response)
       .unsafeRunSync()
@@ -165,7 +165,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support multiple queries" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true&multi=false"), response)
       .unsafeRunSync()
@@ -176,7 +176,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "not take query order into account" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true&multi=false"), response)
       .unsafeRunSync()
@@ -187,7 +187,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support query with multiple values" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=1&p=2"), response)
       .unsafeRunSync()
@@ -198,7 +198,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support value wildcard with multi value query" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=*"), response)
       .unsafeRunSync()
@@ -208,7 +208,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "support wildcard query" in {
     val repository = StubsRepositoryImpl()
-    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?*"), response)
       .unsafeRunSync()

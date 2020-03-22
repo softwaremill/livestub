@@ -59,7 +59,8 @@ object LiveStubApi extends Tapir with AutoDerivation {
       .in(jsonBody[StubEndpointRequest])
       .out(jsonBody[StubEndpointResponse])
 
-  val catchEndpoint: Endpoint[Request, (StatusCode, String), (StatusCode, Json, Seq[(String, String)]), Nothing] =
+  val catchEndpoint
+      : Endpoint[Request, (StatusCode, String), (StatusCode, Option[Json], Seq[(String, String)]), Nothing] =
     endpoint
       .in(
         (extractFromRequest(_.method) and paths and queryParams)
@@ -67,7 +68,7 @@ object LiveStubApi extends Tapir with AutoDerivation {
             (r.method.method, r.paths.map(_.path), MultiQueryParams.fromMultiSeq(r.queries.map(q => q.key -> q.values)))
           )
       )
-      .out(statusCode and jsonBody[Json] and headers)
+      .out(statusCode and jsonBody[Option[Json]] and headers)
       .errorOut(statusCode and stringBody)
 
   val clearEndpoint: Endpoint[Unit, Unit, Unit, Nothing] = endpoint.post.in("__clear")
@@ -99,7 +100,19 @@ object Request {
   }
 }
 
-case class Response(body: Json, statusCode: StatusCode, headers: List[ResponseHeader] = List.empty)
+case class Response(body: Option[Json] = None, statusCode: StatusCode, headers: List[ResponseHeader] = List.empty)
+object Response {
+  def withBody[T: Encoder](body: T, statusCode: StatusCode, headers: List[ResponseHeader] = List.empty): Response = {
+    new Response(Some(implicitly[Encoder[T]].apply(body)), statusCode, headers)
+  }
+  def emptyBody(statusCode: StatusCode, headers: List[ResponseHeader] = List.empty): Response = {
+    new Response(None, statusCode, headers)
+  }
+
+  def withJsonBody(body: Json, statusCode: StatusCode, headers: List[ResponseHeader] = List.empty): Response = {
+    new Response(Some(body), statusCode, headers)
+  }
+}
 case class StubEndpointResponse()
 
 case class RequestStub(method: MethodValue, url: RequestPathAndQuery)

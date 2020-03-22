@@ -37,7 +37,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       }
 
   val catchEndpoint
-      : ServerEndpoint[Request, (StatusCode, String), (StatusCode, Json, Seq[(String, String)]), Nothing, IO] =
+      : ServerEndpoint[Request, (StatusCode, String), (StatusCode, Option[Json], Seq[(String, String)]), Nothing, IO] =
     LiveStubApi.catchEndpoint
       .serverLogic { request =>
         log(s"Got request: $request") >>
@@ -48,7 +48,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
                 .map(r => (r.statusCode, r.body, r.headers.map(h => h.name -> h.value)).asRight[(StatusCode, String)])
                 .getOrElse(
                   (StatusCode.NotFound -> "Not mocked.")
-                    .asLeft[(StatusCode, Json, Seq[(String, String)])]
+                    .asLeft[(StatusCode, Option[Json], Seq[(String, String)])]
                 )
             )
       }

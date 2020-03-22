@@ -1,7 +1,6 @@
 package sttp.livestub.sdk
 
 import io.circe.{Encoder, Json}
-import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.{Request, SttpBackend, Response => SttpResponse}
 import sttp.livestub.api._
 import sttp.model.{StatusCode, Uri}
@@ -37,24 +36,13 @@ class LiveStubSdk[F[_], SS, WS[_]](uri: Uri)(implicit backend: SttpBackend[F, SS
 class OutgoingStubbing[F[_], SS, WS[_]](uri: Uri, requestStub: RequestStub)(
     implicit backend: SttpBackend[F, SS, WS]
 ) {
-  def thenRespond[T: Encoder](
-      statusCode: StatusCode,
-      response: T
-  ): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
-    thenRespond(statusCode, implicitly[Encoder[T]].apply(response))
-  }
-
-  def thenRespond(
-      statusCode: StatusCode,
-      json: Json,
-      headers: List[ResponseHeader] = List.empty
-  ): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
+  def thenRespond(response: Response): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
     LiveStubApi.setupEndpoint
       .toSttpRequestUnsafe(uri)
       .apply(
         StubEndpointRequest(
           requestStub,
-          Response(json, statusCode, headers)
+          response
         )
       )
       .send()

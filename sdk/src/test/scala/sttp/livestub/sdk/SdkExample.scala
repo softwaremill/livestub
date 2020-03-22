@@ -4,9 +4,10 @@ import cats.effect.IO
 import io.circe.Json
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.client.{SttpBackend, _}
+import sttp.client.{SttpBackend, Response => _, _}
 import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import sttp.livestub.api.{Response, ResponseHeader}
 import sttp.model.StatusCode
 import sttp.tapir.Tapir
 
@@ -23,7 +24,7 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
         .post(uri"https://httpbin.org/post?signup=123")
 
       val livestub = new LiveStubSdk(uri"http://mock:7070")
-      livestub.when(request).thenRespond(StatusCode.Ok, Json.fromString("OK"))
+      livestub.when(request).thenRespond(Response(Some(Json.fromString("OK")), StatusCode.Ok))
     }
   }
 
@@ -32,7 +33,7 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
       val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
       val livestub = new LiveStubSdk(uri"http://mock:7070")
-      livestub.when(myEndpoint).thenRespond(StatusCode.Ok, Json.fromString("OK"))
+      livestub.when(myEndpoint).thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
     }
   }
 }

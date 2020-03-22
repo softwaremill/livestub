@@ -42,7 +42,7 @@ class RequestStubSpec extends AnyFlatSpec with Matchers {
     ) shouldBe Right(
       StubEndpointRequest(
         RequestStub(FixedMethod(Method.GET), "dogs/3/status?name=asd"),
-        Response(Json.obj("status" -> Json.fromString("unhappy")), StatusCode.Ok)
+        Response(Some(Json.obj("status" -> Json.fromString("unhappy"))), StatusCode.Ok)
       )
     )
   }
