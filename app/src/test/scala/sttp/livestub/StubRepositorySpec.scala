@@ -10,7 +10,7 @@ import sttp.model.{Method, StatusCode}
 class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   "StubRepositorySpec" should "return response for single fragment path" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response = Response(Json.fromString("OK"), StatusCode.Ok)
     repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), toRequestPath("/admin")), response).unsafeRunSync()
 
@@ -18,13 +18,13 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "return none for not matching path" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
 
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync() shouldBe empty
   }
 
   it should "return response for multi fragment path" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response = Response(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), toRequestPath("/admin/docs")), response)
@@ -34,7 +34,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "distinguish when path contains another subpath" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response1 = Response(Json.fromString("OK"), StatusCode.Ok)
     val response2 = Response(Json.fromString("Bad"), StatusCode.BadRequest)
     repository
@@ -47,7 +47,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "support wildcard paths" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response = Response(Json.fromString("OK"), StatusCode.Ok)
     repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), toRequestPath("/*")), response).unsafeRunSync()
 
@@ -56,7 +56,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "distinguish between wildcard path and direct path" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response1 = Response(Json.fromString("OK"), StatusCode.Ok)
     val response2 = Response(Json.fromString("Bad"), StatusCode.BadRequest)
     repository
@@ -69,7 +69,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "support wildcard methods" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response = Response(Json.fromString("OK"), StatusCode.Ok)
     repository.put(RequestStub(MethodValue.Wildcard, toRequestPath("/admin")), response).unsafeRunSync()
 
@@ -78,7 +78,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "only resolve wildcard path elements on a single level" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response = Response(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), toRequestPath("/admin/*")), response)
@@ -89,7 +89,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "resolve multi wildcards globally" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response = Response(Json.fromString("OK"), StatusCode.Ok)
     repository
       .put(RequestStub(MethodValue.FixedMethod(Method.GET), toRequestPath("/admin/**")), response)
@@ -100,7 +100,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "recursively search for multi wildcard in upstream routes" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response1 = Response(Json.fromString("OK"), StatusCode.Ok)
     val response2 = Response(Json.fromString("..."), StatusCode.BadGateway)
     repository
@@ -117,7 +117,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "support combining wildcard with multi wildcard" in {
-    val repository = StubsRepository()
+    val repository = StubsRepositoryImpl()
     val response1 = Response(Json.fromString("OK - 1"), StatusCode.Ok)
     val response2 = Response(Json.fromString("OK - 2"), StatusCode.Ok)
     val response3 = Response(Json.fromString("OK - 3"), StatusCode.Ok)
@@ -141,13 +141,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   }
 
-  def qwe(v: => Int) = {
-    println(v)
-    println(v)
-  }
-
   private def toRequestPath(str: String): RequestPath = {
-
     str.split("/").filter(_.nonEmpty).toList match {
       case ::(head, next) => RequestPath((List(head) ++ next).map(PathElement.fromString))
       case Nil            => RequestPath(List.empty)
