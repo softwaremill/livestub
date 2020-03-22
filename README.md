@@ -10,7 +10,7 @@
 ### launch
  - **coursier**
 
-    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.4-SNAPSHOT -- -p 7070`
+    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.4 -- -p 7070`
 
 - **docker**
 
