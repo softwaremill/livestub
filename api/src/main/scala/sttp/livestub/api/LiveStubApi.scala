@@ -2,7 +2,7 @@ package sttp.livestub.api
 
 import io.circe.generic.auto._
 import io.circe.{Decoder, Encoder, Json}
-import sttp.model.{Method, MultiQueryParams, StatusCode}
+import sttp.model.{Method, MultiQueryParams, StatusCode, Uri}
 import sttp.tapir.SchemaType.{SInteger, SString}
 import sttp.tapir.json.circe._
 import sttp.tapir.{Endpoint, Schema, Tapir, Validator}
@@ -38,10 +38,10 @@ object LiveStubApi extends Tapir {
       case PathElement.MultiWildcard => "**"
     }
     def queryElementToString(q: QueryElement): String = q match {
-      case QueryElement.FixedKeyValueQuery(key, value) => s"$key=$value"
-      case QueryElement.FixedValueQuery(key)           => key
-      case QueryElement.WildcardKeyValueQuery(key)     => s"$key=*"
-      case QueryElement.WildcardValueQuery             => "*"
+      case QueryElement.FixedQuery(key, values) =>
+        if (values.nonEmpty) values.map(v => s"$key=$v").mkString("&") else key
+      case QueryElement.WildcardValueQuery(key) => s"$key=*"
+      case QueryElement.WildcardQuery           => "*"
     }
     Encoder.encodeString.contramap(r =>
       List(r.paths.map(pathElementToString).mkString("/"), r.query.queries.map(queryElementToString).mkString("&"))
@@ -61,8 +61,8 @@ object LiveStubApi extends Tapir {
     endpoint
       .in(
         (extractFromRequest(_.method) and paths and queryParams)
-          .map(s => Request(s._1, s._2, s._3.toSeq))(r =>
-            (r.method.method, r.paths.map(_.path), MultiQueryParams.fromSeq(r.queries.map(q => q.key -> q.value)))
+          .map(s => Request(s._1, s._2, s._3.toMultiSeq))(r =>
+            (r.method.method, r.paths.map(_.path), MultiQueryParams.fromMultiSeq(r.queries.map(q => q.key -> q.values)))
           )
       )
       .out(statusCode and jsonBody[Json])
@@ -80,34 +80,20 @@ case class StubEndpointRequest(`when`: RequestStub, `then`: Response)
 case class Request(
     method: MethodValue.FixedMethod,
     paths: List[PathElement.Fixed],
-    queries: List[QueryElement.FixedKeyValueQuery]
+    queries: List[QueryElement.FixedQuery]
 )
 object Request {
-  def apply(method: Method, paths: Seq[String], queries: Seq[(String, String)]): Request = {
+  def apply(method: Method, paths: Seq[String], queries: Seq[(String, Seq[String])]): Request = {
     new Request(
       MethodValue.FixedMethod(method),
       paths.map(PathElement.Fixed).toList,
-      queries.map(s => QueryElement.FixedKeyValueQuery(s._1, s._2)).toList
+      queries.map(s => QueryElement.FixedQuery(s._1, s._2)).toList
     )
   }
 
   def apply(method: Method, path: String): Request = {
-    path.split('?').toList match {
-      case List(path, query) =>
-        new Request(
-          MethodValue.FixedMethod(method),
-          path.split("/").filter(_.nonEmpty).map(PathElement.Fixed).toList,
-          query.split("&").map(FixedQueryElement.fromString).toList.collect {
-            case t: QueryElement.FixedKeyValueQuery => t
-          }
-        )
-      case path :: Nil =>
-        new Request(
-          MethodValue.FixedMethod(method),
-          path.split("/").filter(_.nonEmpty).map(PathElement.Fixed).toList,
-          List.empty
-        )
-    }
+    val uri = Uri.parse(s"http://localhost/$path").right.get
+    Request(method, uri.path.filter(_.nonEmpty), uri.multiParams.toMultiSeq)
   }
 }
 
@@ -140,12 +126,11 @@ object RequestPathAndQuery {
 }
 
 case class RequestQuery(queries: ListSet[QueryElement]) {
-  def matches(`given`: List[FixedQueryElement]): Boolean = {
-    `given`.forall {
-      case q @ QueryElement.FixedKeyValueQuery(key, _) =>
-        queries.contains(q) || queries.contains(QueryElement.WildcardKeyValueQuery(key))
-      case q @ QueryElement.FixedValueQuery(value) =>
-        queries.contains(q) || queries.contains(QueryElement.WildcardValueQuery)
+  def matches(`given`: List[QueryElement.FixedQuery]): Boolean = {
+    `given`.forall { q =>
+      queries.contains(q) || queries.contains(QueryElement.WildcardValueQuery(q.key)) || queries.contains(
+        QueryElement.WildcardQuery
+      )
     }
   }
 }
@@ -154,9 +139,16 @@ object RequestQuery {
     RequestQuery(
       ListSet.from(
         str
-          .split("&")
-          .map(QueryElement.fromString)
+          .split('&')
           .toList
+          .map(_.split('=').toList)
+          .groupBy(_.head)
+          .map { case (k, v) => k -> v.flatMap(_.drop(1)) }
+          .map {
+            case ("*", Nil)                => QueryElement.WildcardQuery
+            case (k, v) if v.contains("*") => QueryElement.WildcardValueQuery(k)
+            case (k, v)                    => QueryElement.FixedQuery(k, v)
+          }
       )
     )
   }
@@ -187,31 +179,8 @@ object MethodValue {
 
 sealed trait QueryElement
 
-sealed trait FixedQueryElement extends QueryElement
-
-object FixedQueryElement {
-  def fromString(str: String): FixedQueryElement = {
-    str.split("=").toList match {
-      case List(key, value) => QueryElement.FixedKeyValueQuery(key, value)
-      case value :: Nil     => QueryElement.FixedValueQuery(value)
-      case other            => throw new IllegalArgumentException(s"Invalid query: $other")
-    }
-  }
-}
-
 object QueryElement {
-  case class FixedKeyValueQuery(key: String, value: String) extends FixedQueryElement
-  case class FixedValueQuery(value: String) extends FixedQueryElement
-  case class WildcardKeyValueQuery(key: String) extends QueryElement
-  case object WildcardValueQuery extends QueryElement
-
-  def fromString(str: String): QueryElement = {
-    str.split("=").toList match {
-      case List(key, "*")   => QueryElement.WildcardKeyValueQuery(key)
-      case List(key, value) => QueryElement.FixedKeyValueQuery(key, value)
-      case "*" :: Nil       => QueryElement.WildcardValueQuery
-      case value :: Nil     => QueryElement.FixedValueQuery(value)
-      case other            => throw new IllegalArgumentException(s"Invalid query: $other")
-    }
-  }
+  case class FixedQuery(key: String, values: Seq[String]) extends QueryElement
+  case class WildcardValueQuery(key: String) extends QueryElement
+  case object WildcardQuery extends QueryElement
 }

@@ -184,4 +184,35 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     repository.get(Request(Method.GET, "/admin?multi=false&filter=true")).unsafeRunSync().value shouldBe response
     repository.get(Request(Method.GET, "/admin?multi=false&filter=false")).unsafeRunSync() shouldBe empty
   }
+
+  it should "support query with multiple values" in {
+    val repository = StubsRepositoryImpl()
+    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=1&p=2"), response)
+      .unsafeRunSync()
+
+    repository.get(Request(Method.GET, "/admin?p=1&p=2")).unsafeRunSync().value shouldBe response
+    repository.get(Request(Method.GET, "/admin?p=1&p=3")).unsafeRunSync() shouldBe empty
+  }
+
+  it should "support value wildcard with multi value query" in {
+    val repository = StubsRepositoryImpl()
+    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=*"), response)
+      .unsafeRunSync()
+
+    repository.get(Request(Method.GET, "/admin?p=1&p=2")).unsafeRunSync().value shouldBe response
+  }
+
+  it should "support wildcard query" in {
+    val repository = StubsRepositoryImpl()
+    val response = Response(Json.fromString("OK"), StatusCode.Ok)
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?*"), response)
+      .unsafeRunSync()
+
+    repository.get(Request(Method.GET, "/admin?p=1&p=2&q=3")).unsafeRunSync().value shouldBe response
+  }
 }

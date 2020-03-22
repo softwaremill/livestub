@@ -26,7 +26,7 @@ class RequestStubSpec extends AnyFlatSpec with Matchers {
 
   it should "parse path with query" in {
     RequestStub(MethodValue.Wildcard, "/admin/status?filter=true").url.query shouldBe RequestQuery(
-      ListSet.from(List(QueryElement.FixedKeyValueQuery("filter", "true")))
+      ListSet.from(List(QueryElement.FixedQuery("filter", List("true"))))
     )
   }
 
