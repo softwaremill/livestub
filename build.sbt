@@ -1,6 +1,6 @@
 import com.softwaremill.PublishTravis.publishTravisSettings
 
-val http4sVersion = "0.21.0-M5"
+val http4sVersion = "0.21.1"
 val circeVersion = "0.12.2"
 val tapirVersion = "0.12.25"
 
