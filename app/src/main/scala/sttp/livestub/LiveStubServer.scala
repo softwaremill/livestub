@@ -22,18 +22,18 @@ import scala.concurrent.ExecutionContext
 class LiveStubServer(port: Int, quiet: Boolean) {
   private implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
 
-  private val stubbedCalls = StubsRepository()
+  private val stubbedCalls = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
 
   def run(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
-  val setupEndpoint: ServerEndpoint[MockEndpointRequest, Unit, MockEndpointResponse, Nothing, IO] =
+  val setupEndpoint: ServerEndpoint[StubEndpointRequest, Unit, StubEndpointResponse, Nothing, IO] =
     LiveStubApi.setupEndpoint
       .serverLogic { req =>
         log(s"Got mocking request $req") >>
           stubbedCalls
             .put(req.`when`, req.`then`)
-            .map(_ => MockEndpointResponse().asRight[Unit])
+            .map(_ => StubEndpointResponse().asRight[Unit])
       }
 
   val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Json), Nothing, IO] =
@@ -52,8 +52,15 @@ class LiveStubServer(port: Int, quiet: Boolean) {
             )
       }
 
+  val routesEndpoint: ServerEndpoint[Unit, Unit, StubbedRoutesResponse, Nothing, IO] =
+    LiveStubApi.routesEndpoint.serverLogic { _ =>
+      stubbedCalls.getAll().map(list => StubbedRoutesResponse(list.map(StubEndpointRequest.tupled)).asRight[Unit])
+    }
+
   val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Nothing, IO] =
     LiveStubApi.clearEndpoint.serverLogic(_ => stubbedCalls.clear().map(_.asRight[Unit]))
+
+  private val endpoints = List(setupEndpoint, clearEndpoint, routesEndpoint, catchEndpoint)
 
   private def log(message: String) =
     if (!quiet) {
@@ -61,8 +68,6 @@ class LiveStubServer(port: Int, quiet: Boolean) {
     } else {
       IO.unit
     }
-
-  private val endpoints = List(setupEndpoint, catchEndpoint, clearEndpoint)
 
   private def app(
       implicit ec: ExecutionContext,
