@@ -130,9 +130,9 @@ object RequestPathAndQuery {
           path.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString),
           RequestQuery.fromString(query)
         )
-      case head :: Nil =>
+      case path :: Nil =>
         RequestPathAndQuery(
-          str.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString),
+          path.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString),
           RequestQuery(ListSet.empty)
         )
     }

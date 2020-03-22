@@ -34,14 +34,14 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebS
 class OutgoingStubbing[F[_]](uri: Uri, requestStub: RequestStub)(
     implicit backend: SttpBackend[F, Nothing, WebSocketHandler]
 ) {
-  def `then`[T: Encoder](
+  def thenRespond[T: Encoder](
       statusCode: StatusCode,
       response: T
   ): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
-    `then`(statusCode, implicitly[Encoder[T]].apply(response))
+    thenRespond(statusCode, implicitly[Encoder[T]].apply(response))
   }
 
-  def `then`(statusCode: StatusCode, json: Json): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
+  def thenRespond(statusCode: StatusCode, json: Json): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
     LiveStubApi.setupEndpoint
       .toSttpRequestUnsafe(uri)
       .apply(

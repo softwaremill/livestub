@@ -23,7 +23,7 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
         .post(uri"https://httpbin.org/post?signup=123")
 
       val livestub = new LiveStubSdk(uri"http://mock:7070")
-      livestub.when(request).`then`(StatusCode.Ok, Json.fromString("OK"))
+      livestub.when(request).thenRespond(StatusCode.Ok, Json.fromString("OK"))
     }
   }
 
@@ -32,7 +32,7 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
       val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
       val livestub = new LiveStubSdk(uri"http://mock:7070")
-      livestub.when(myEndpoint).`then`(StatusCode.Ok, Json.fromString("OK"))
+      livestub.when(myEndpoint).thenRespond(StatusCode.Ok, Json.fromString("OK"))
     }
   }
 }
