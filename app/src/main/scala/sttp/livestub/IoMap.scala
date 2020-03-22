@@ -4,9 +4,10 @@ import java.util.concurrent.ConcurrentHashMap
 
 import cats.effect.IO
 import cats.implicits._
+
 import scala.jdk.CollectionConverters._
 
-class IoMap[K, V]() {
+class IoMap[K, V] {
   private val map = new ConcurrentHashMap[K, V]()
 
   def put(k: K, v: V): IO[Unit] = {
@@ -28,6 +29,10 @@ class IoMap[K, V]() {
         val v1 = v // materialize lazy value
         put(k, v1).as(v1)
     }
+  }
+
+  def findFirst(f: (K, V) => Boolean): IO[Option[V]] = {
+    IO.delay(map.asScala.collectFirst { case (k, v) if f(k, v) => v })
   }
 
   override def toString: String = map.asScala.toString()

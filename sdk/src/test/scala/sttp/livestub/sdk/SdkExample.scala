@@ -2,15 +2,12 @@ package sttp.livestub.sdk
 
 import cats.effect.IO
 import io.circe.Json
-import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.client.SttpBackend
+import sttp.client.{SttpBackend, _}
 import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.livestub.api.LiveStubApi
 import sttp.model.StatusCode
-import sttp.client._
 import sttp.tapir.Tapir
 
 import scala.concurrent.ExecutionContext
