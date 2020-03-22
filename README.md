@@ -27,3 +27,29 @@ curl -X POST 'localhost:8081/__set' \
 curl 'localhost:8081/animals/1/status'
 {"status":"happy"}
 ```
+
+### swagger
+
+Swagger is available under `/__admin/docs`
+
+### advanced stubbing
+
+Livestub supports wildcard http methods as well as wildcard path parameters.
+
+wildcard method:
+```
+curl -X POST '172.17.0.1:7070/__set' \
+-d '{"when":{"method":"*", "path":"dogs"}, "then": {"statusCode":200, "body":{"status": "OK"} }}'
+```
+
+wildcard path param: 
+```
+curl -X POST '172.17.0.1:7070/__set' \
+-d '{"when":{"method":"GET", "path":"dogs/*/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
+```
+
+multiwildcard path param: (this one catches all routes which originate from `/dogs`)
+```
+curl -X POST '172.17.0.1:7070/__set' \
+-d '{"when":{"method":"GET", "path":"dogs/**"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
+```
