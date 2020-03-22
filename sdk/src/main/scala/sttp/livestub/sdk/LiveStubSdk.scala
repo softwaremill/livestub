@@ -8,14 +8,17 @@ import sttp.model.{StatusCode, Uri}
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp._
 
+import scala.collection.immutable.ListSet
+
 class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebSocketHandler]) {
 
   def when[E, O, R](sttpRequest: Request[Either[E, O], R]): OutgoingStubbing[F] = {
+    val req = Request(sttpRequest.method, sttpRequest.uri.path, sttpRequest.uri.multiParams.toMultiSeq)
     new OutgoingStubbing[F](
       uri,
       RequestStub(
-        MethodValue.FixedMethod(sttpRequest.method),
-        List(sttpRequest.uri.path.mkString("/"), sttpRequest.uri.querySegments.mkString("&")).mkString("?")
+        req.method,
+        RequestPathAndQuery(req.paths, RequestQuery(ListSet.from(req.queries)))
       )
     )
   }
