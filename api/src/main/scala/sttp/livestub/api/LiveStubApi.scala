@@ -44,11 +44,11 @@ object LiveStubApi extends Tapir {
     RequestPath(str.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString))
   }
 
-  val setupEndpoint: Endpoint[MockEndpointRequest, Unit, MockEndpointResponse, Nothing] =
+  val setupEndpoint: Endpoint[StubEndpointRequest, Unit, StubEndpointResponse, Nothing] =
     endpoint.post
       .in("__set")
-      .in(jsonBody[MockEndpointRequest])
-      .out(jsonBody[MockEndpointResponse])
+      .in(jsonBody[StubEndpointRequest])
+      .out(jsonBody[StubEndpointResponse])
 
   val catchEndpoint: Endpoint[Request, (StatusCode, String), (StatusCode, Json), Nothing] =
     endpoint
@@ -60,9 +60,14 @@ object LiveStubApi extends Tapir {
       .errorOut(statusCode and stringBody)
 
   val clearEndpoint: Endpoint[Unit, Unit, Unit, Nothing] = endpoint.post.in("__clear")
+
+  val routesEndpoint: Endpoint[Unit, Unit, StubbedRoutesResponse, Nothing] =
+    endpoint.get.in("__routes").out(jsonBody[StubbedRoutesResponse])
 }
 
-case class MockEndpointRequest(`when`: RequestStub, `then`: Response)
+case class StubbedRoutesResponse(routes: List[StubEndpointRequest])
+
+case class StubEndpointRequest(`when`: RequestStub, `then`: Response)
 case class Request(method: Method, path: String)
 object Request {
   def apply(method: Method, paths: Seq[String]): Request = {
@@ -71,7 +76,7 @@ object Request {
 }
 
 case class Response(body: Json, statusCode: StatusCode)
-case class MockEndpointResponse()
+case class StubEndpointResponse()
 
 case class RequestStub(method: MethodValue, path: RequestPath)
 

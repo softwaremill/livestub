@@ -5,14 +5,15 @@ import cats.effect.IO
 import cats.implicits._
 import sttp.livestub.api._
 
-case class StubsRepository(methods: IoMap[MethodValue, Response], paths: IoMap[PathElement, StubsRepository]) {
+case class StubsRepositoryImpl(methods: IoMap[MethodValue, Response], paths: IoMap[PathElement, StubsRepositoryImpl])
+    extends StubRepository {
   def put(request: RequestStub, response: Response): IO[Unit] = {
     val pathParts = request.path.paths
     pathParts match {
       case head :: next =>
         val nextPart = request.copy(path = request.path.copy(paths = next))
         paths
-          .getOrPut(head, StubsRepository())
+          .getOrPut(head, StubsRepositoryImpl())
           .flatMap(_.put(nextPart, response))
       case Nil => methods.put(request.method, response)
     }
@@ -49,6 +50,12 @@ case class StubsRepository(methods: IoMap[MethodValue, Response], paths: IoMap[P
   }
 }
 
-object StubsRepository {
-  def apply(): StubsRepository = new StubsRepository(new IoMap(), new IoMap())
+object StubsRepositoryImpl {
+  def apply(): StubsRepositoryImpl = new StubsRepositoryImpl(new IoMap(), new IoMap())
+}
+
+trait StubRepository {
+  def get(request: Request): IO[Option[Response]]
+  def put(request: RequestStub, response: Response): IO[Unit]
+  def clear(): IO[Unit]
 }

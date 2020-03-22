@@ -10,21 +10,21 @@
 ### launch
  - **coursier**
 
-    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.4-SNAPSHOT -- -p 8081`
+    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.4-SNAPSHOT -- -p 7070`
 
 - **docker**
 
-    `docker run -p 8081:7070 softwaremill/sttp.livestub`
+    `docker run -p 7070:7070 softwaremill/sttp.livestub`
 
 ### stub
 ```
-curl -X POST 'localhost:8081/__set' \
+curl -X POST 'localhost:7070/__set' \
 -d '{"when":{"method":"GET", "path":"animals/1/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
 ```
 
 ### invoke
 ```
-curl 'localhost:8081/animals/1/status'
+curl 'localhost:7070/animals/1/status'
 {"status":"happy"}
 ```
 
@@ -38,18 +38,31 @@ Livestub supports wildcard http methods as well as wildcard path parameters.
 
 wildcard method:
 ```
-curl -X POST '172.17.0.1:7070/__set' \
+curl -X POST 'localhost:7070/__set' \
 -d '{"when":{"method":"*", "path":"dogs"}, "then": {"statusCode":200, "body":{"status": "OK"} }}'
 ```
 
 wildcard path param: 
 ```
-curl -X POST '172.17.0.1:7070/__set' \
+curl -X POST 'localhost:7070/__set' \
 -d '{"when":{"method":"GET", "path":"dogs/*/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
 ```
 
 multiwildcard path param: (this one catches all routes which originate from `/dogs`)
 ```
-curl -X POST '172.17.0.1:7070/__set' \
+curl -X POST 'localhost:7070/__set' \
 -d '{"when":{"method":"GET", "path":"dogs/**"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
+```
+
+### additional methods
+
+clear stubbed routes
+```
+curl -X POST 'localhost:7070/__clear'
+```
+
+show stubbed routes
+
+```
+curl 'localhost:7070/__routes'
 ```
