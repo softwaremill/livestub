@@ -40,9 +40,7 @@ object LiveStubApi extends Tapir {
     Encoder.encodeString.contramap(_.paths.map(pathElementToString).mkString("/"))
   }
 
-  implicit val requestPathDecoder: Decoder[RequestPath] = Decoder.decodeString.map { str =>
-    RequestPath(str.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString))
-  }
+  implicit val requestPathDecoder: Decoder[RequestPath] = Decoder.decodeString.map(RequestPath.fromString)
 
   val setupEndpoint: Endpoint[StubEndpointRequest, Unit, StubEndpointResponse, Nothing] =
     endpoint.post
@@ -81,6 +79,10 @@ case class StubEndpointResponse()
 case class RequestStub(method: MethodValue, path: RequestPath)
 
 case class RequestPath(paths: List[PathElement])
+object RequestPath {
+  def fromString(str: String): RequestPath =
+    RequestPath(str.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString))
+}
 
 sealed trait PathElement
 

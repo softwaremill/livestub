@@ -72,8 +72,20 @@ lazy val api: Project = (project in file("api"))
     ) ++ jsonDependencies
   )
 
+lazy val sdk: Project = (project in file("sdk"))
+  .settings(commonSettings)
+  .settings(
+    name := "livestub-sdk",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.0.6",
+      "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test
+    )
+  )
+  .dependsOn(api)
+
 lazy val rootProject = (project in file("."))
   .settings(commonSettings)
   .settings(publishArtifact := false, name := "livestub")
   .settings(publishTravisSettings)
-  .aggregate(app, api)
+  .aggregate(app, api, sdk)
