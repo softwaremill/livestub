@@ -3,6 +3,7 @@ package sttp.livestub
 import cats.data.OptionT
 import cats.effect.IO
 import sttp.livestub.api._
+import cats.implicits._
 
 case class StubsRepositoryImpl(
     paths: IoMap[PathElement, StubsRepositoryImpl],
@@ -49,7 +50,7 @@ case class StubsRepositoryImpl(
   }
 
   def clear(): IO[Unit] = {
-    paths.clear()
+    paths.clear() >> queries.clear()
   }
 }
 
