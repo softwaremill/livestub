@@ -2,11 +2,9 @@ package sttp.livestub
 
 import cats.data.OptionT
 import cats.effect.IO
-import cats.implicits._
 import sttp.livestub.api._
 
 case class StubsRepositoryImpl(
-    methods: IoMap[MethodValue, Response],
     paths: IoMap[PathElement, StubsRepositoryImpl],
     queries: IoMap[RequestQuery, IoMap[MethodValue, Response]]
 ) extends StubRepository {
@@ -51,12 +49,12 @@ case class StubsRepositoryImpl(
   }
 
   def clear(): IO[Unit] = {
-    methods.clear() >> paths.clear()
+    paths.clear()
   }
 }
 
 object StubsRepositoryImpl {
-  def apply(): StubsRepositoryImpl = new StubsRepositoryImpl(new IoMap(), new IoMap(), new IoMap())
+  def apply(): StubsRepositoryImpl = new StubsRepositoryImpl(new IoMap(), new IoMap())
 }
 
 trait StubRepository {
