@@ -1,15 +1,23 @@
 package sttp.livestub.api
 
+import cats.data.NonEmptyList
 import io.circe.Json
 import sttp.model._
 import sttp.tapir.Endpoint
+import sttp.tapir.codec.cats.TapirCodecCats
 import sttp.tapir.json.circe._
 
-object LiveStubApi extends LiveStubTapirSupport with JsonSupport {
+object LiveStubApi extends LiveStubTapirSupport with JsonSupport with TapirCodecCats {
   val setupEndpoint: Endpoint[StubEndpointRequest, Unit, StubEndpointResponse, Nothing] =
     endpoint.post
       .in("__set")
       .in(jsonBody[StubEndpointRequest])
+      .out(jsonBody[StubEndpointResponse])
+
+  val setupManyEndpoint: Endpoint[StubManyEndpointRequest, Unit, StubEndpointResponse, Nothing] =
+    endpoint.post
+      .in("__set_many")
+      .in(jsonBody[StubManyEndpointRequest])
       .out(jsonBody[StubEndpointResponse])
 
   val catchEndpoint
@@ -32,4 +40,5 @@ object LiveStubApi extends LiveStubTapirSupport with JsonSupport {
 
 case class StubbedRoutesResponse(routes: List[StubEndpointRequest])
 case class StubEndpointRequest(`when`: RequestStub, `then`: Response)
+case class StubManyEndpointRequest(`when`: RequestStub, `then`: NonEmptyList[Response])
 case class StubEndpointResponse()

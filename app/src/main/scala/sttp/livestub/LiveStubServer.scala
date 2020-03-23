@@ -1,5 +1,6 @@
 package sttp.livestub
 
+import cats.data.NonEmptyList
 import cats.effect.{ContextShift, ExitCode, IO, Resource, Sync, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
@@ -32,6 +33,15 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       .serverLogic { req =>
         log(s"Got mocking request $req") >>
           stubbedCalls
+            .put(req.`when`, NonEmptyList.one(req.`then`))
+            .map(_ => StubEndpointResponse().asRight[Unit])
+      }
+
+  val setupManyEndpoint: ServerEndpoint[StubManyEndpointRequest, Unit, StubEndpointResponse, Nothing, IO] =
+    LiveStubApi.setupManyEndpoint
+      .serverLogic { req =>
+        log(s"Got mocking request $req") >>
+          stubbedCalls
             .put(req.`when`, req.`then`)
             .map(_ => StubEndpointResponse().asRight[Unit])
       }
@@ -55,13 +65,15 @@ class LiveStubServer(port: Int, quiet: Boolean) {
 
   val routesEndpoint: ServerEndpoint[Unit, Unit, StubbedRoutesResponse, Nothing, IO] =
     LiveStubApi.routesEndpoint.serverLogic { _ =>
-      stubbedCalls.getAll().map(list => StubbedRoutesResponse(list.map(StubEndpointRequest.tupled)).asRight[Unit])
+      stubbedCalls
+        .getAll()
+        .map(list => StubbedRoutesResponse(list.map(i => StubEndpointRequest(i._1, i._2.head))).asRight[Unit])
     }
 
   val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Nothing, IO] =
     LiveStubApi.clearEndpoint.serverLogic(_ => stubbedCalls.clear().map(_.asRight[Unit]))
 
-  private val endpoints = List(setupEndpoint, clearEndpoint, routesEndpoint, catchEndpoint)
+  private val endpoints = List(setupEndpoint, setupManyEndpoint, clearEndpoint, routesEndpoint, catchEndpoint)
 
   private def log(message: String) =
     if (!quiet) {

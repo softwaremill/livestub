@@ -69,7 +69,8 @@ lazy val api: Project = (project in file("api"))
   .settings(
     name := "livestub-api",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion
+      "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion,
+      "com.softwaremill.sttp.tapir" %% "tapir-cats" % tapirVersion
     ) ++ jsonDependencies
   )
 

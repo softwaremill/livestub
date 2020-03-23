@@ -1,5 +1,6 @@
 package sttp.livestub
 
+import cats.data.NonEmptyList
 import io.circe.Json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -11,7 +12,8 @@ import sttp.livestub.api.{
   RequestQuery,
   RequestStub,
   Response,
-  StubEndpointRequest
+  StubEndpointRequest,
+  StubManyEndpointRequest
 }
 
 import scala.collection.immutable.ListSet
@@ -43,6 +45,19 @@ class RequestStubSpec extends AnyFlatSpec with Matchers {
       StubEndpointRequest(
         RequestStub(FixedMethod(Method.GET), "dogs/3/status?name=asd"),
         Response(Some(Json.obj("status" -> Json.fromString("unhappy"))), StatusCode.Ok)
+      )
+    )
+  }
+
+  it should "parse many " in {
+    import io.circe.parser._
+
+    decode[StubManyEndpointRequest](
+      """{"when":{"method":"GET", "url":"dogs/3/status?name=asd"}, "then": [{"statusCode":200, "body":{"status": "unhappy"} }]}"""
+    ) shouldBe Right(
+      StubManyEndpointRequest(
+        RequestStub(FixedMethod(Method.GET), "dogs/3/status?name=asd"),
+        NonEmptyList.one(Response(Some(Json.obj("status" -> Json.fromString("unhappy"))), StatusCode.Ok))
       )
     )
   }

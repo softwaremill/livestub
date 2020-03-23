@@ -1,5 +1,6 @@
 package sttp.livestub
 
+import cats.data.NonEmptyList
 import io.circe.Json
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
@@ -12,9 +13,21 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   "StubRepositorySpec" should "return response for single fragment path" in {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
-    repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), response).unsafeRunSync()
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response))
+      .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response
+  }
+
+  it should "return same response for single fragment path for every invocation" in {
+    val repository = StubsRepositoryImpl()
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response))
+      .unsafeRunSync()
+
+    (1 to 5).foreach { _ => repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response }
   }
 
   it should "return none for not matching path" in {
@@ -27,7 +40,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/docs"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/docs"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin/docs")).unsafeRunSync().value shouldBe response
@@ -38,9 +51,11 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val response1 = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     val response2 = Response.withJsonBody(Json.fromString("Bad"), StatusCode.BadRequest)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/docs"), response1)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/docs"), NonEmptyList.one(response1))
       .unsafeRunSync()
-    repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), response2).unsafeRunSync()
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response2))
+      .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin/docs")).unsafeRunSync().value shouldBe response1
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response2
@@ -49,7 +64,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   it should "support wildcard paths" in {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
-    repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), "/*"), response).unsafeRunSync()
+    repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), "/*"), NonEmptyList.one(response)).unsafeRunSync()
 
     repository.get(Request(Method.GET, "/docs")).unsafeRunSync().value shouldBe response
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response
@@ -60,9 +75,11 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val response1 = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     val response2 = Response.withJsonBody(Json.fromString("Bad"), StatusCode.BadRequest)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/*"), response1)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/*"), NonEmptyList.one(response1))
       .unsafeRunSync()
-    repository.put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), response2).unsafeRunSync()
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response2))
+      .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin/docs")).unsafeRunSync().value shouldBe response1
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response2
@@ -71,7 +88,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
   it should "support wildcard methods" in {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
-    repository.put(RequestStub(MethodValue.Wildcard, "/admin"), response).unsafeRunSync()
+    repository.put(RequestStub(MethodValue.Wildcard, "/admin"), NonEmptyList.one(response)).unsafeRunSync()
 
     repository.get(Request(Method.POST, "/admin")).unsafeRunSync().value shouldBe response
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response
@@ -81,7 +98,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/*"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/*"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin/docs")).unsafeRunSync().value shouldBe response
@@ -92,7 +109,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/**"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin/**"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin/docs")).unsafeRunSync().value shouldBe response
@@ -104,11 +121,11 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val response1 = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     val response2 = Response.withJsonBody(Json.fromString("..."), StatusCode.BadGateway)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/**"), response1)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/**"), NonEmptyList.one(response1))
       .unsafeRunSync()
 
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/list/1/status"), response2)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/list/1/status"), NonEmptyList.one(response2))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/user/list/2/name")).unsafeRunSync().value shouldBe response1
@@ -122,15 +139,15 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val response2 = Response.withJsonBody(Json.fromString("OK - 2"), StatusCode.Ok)
     val response3 = Response.withJsonBody(Json.fromString("OK - 3"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/**"), response1)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/**"), NonEmptyList.one(response1))
       .unsafeRunSync()
 
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/*/status"), response2)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/*/status"), NonEmptyList.one(response2))
       .unsafeRunSync()
 
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/4/status"), response3)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/user/4/status"), NonEmptyList.one(response3))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/user/1/name")).unsafeRunSync().value shouldBe response1
@@ -145,7 +162,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?filter=true")).unsafeRunSync().value shouldBe response
@@ -156,7 +173,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=*"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=*"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?filter=true")).unsafeRunSync().value shouldBe response
@@ -167,7 +184,10 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true&multi=false"), response)
+      .put(
+        RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true&multi=false"),
+        NonEmptyList.one(response)
+      )
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?filter=true&multi=false")).unsafeRunSync().value shouldBe response
@@ -178,7 +198,10 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true&multi=false"), response)
+      .put(
+        RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?filter=true&multi=false"),
+        NonEmptyList.one(response)
+      )
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?multi=false&filter=true")).unsafeRunSync().value shouldBe response
@@ -189,7 +212,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=1&p=2"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=1&p=2"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?p=1&p=2")).unsafeRunSync().value shouldBe response
@@ -200,7 +223,7 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=*"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?p=*"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?p=1&p=2")).unsafeRunSync().value shouldBe response
@@ -210,9 +233,23 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     val repository = StubsRepositoryImpl()
     val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
     repository
-      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?*"), response)
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin?*"), NonEmptyList.one(response))
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?p=1&p=2&q=3")).unsafeRunSync().value shouldBe response
+  }
+
+  it should "cycle through responses" in {
+    val repository = StubsRepositoryImpl()
+    val response1 = Response.withJsonBody(Json.fromString("1"), StatusCode.Ok)
+    val response2 = Response.withJsonBody(Json.fromString("2"), StatusCode.Ok)
+    repository
+      .put(RequestStub(MethodValue.FixedMethod(Method.GET), "/admin"), NonEmptyList.of(response1, response2))
+      .unsafeRunSync()
+
+    (1 to 5).foreach { _ =>
+      repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response1
+      repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response2
+    }
   }
 }
