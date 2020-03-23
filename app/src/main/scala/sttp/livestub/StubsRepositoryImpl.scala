@@ -32,20 +32,31 @@ case class StubsRepositoryImpl(
       case Nil =>
         OptionT(queries.findFirst { case (rq, _) => rq.matches(request.queries) })
           .flatMap(m =>
-            OptionT(m.get(request.method))
-              .flatTap {
-                case NonEmptyList(head, tHead :: tTail) =>
-                  OptionT.liftF(m.put(request.method, NonEmptyList.of(tHead, tTail: _*) :+ head))
-                case nel @ NonEmptyList(_, Nil) => OptionT.liftF(m.put(request.method, nel))
-              }
-              .orElse(OptionT(m.get(MethodValue.Wildcard)).flatTap {
-                case NonEmptyList(head, tHead :: tTail) =>
-                  OptionT.liftF(m.put(MethodValue.Wildcard, NonEmptyList.of(tHead, tTail: _*) :+ head))
-                case nel @ NonEmptyList(_, Nil) => OptionT.liftF(m.put(MethodValue.Wildcard, nel))
-              })
+            getDirectMethod(request, m)
+              .orElse(getWildcardMethod(m))
           )
           .map(_.head)
           .value
+    }
+  }
+
+  private def getDirectMethod(request: Request, m: IoMap[MethodValue, NonEmptyList[Response]]) = {
+    OptionT(m.get(request.method)).flatTap(cycleResponses(m, _, request.method))
+  }
+
+  private def getWildcardMethod(m: IoMap[MethodValue, NonEmptyList[Response]]) = {
+    OptionT(m.get(MethodValue.Wildcard)).flatTap(cycleResponses(m, _, MethodValue.Wildcard))
+  }
+
+  private def cycleResponses(
+      m: IoMap[MethodValue, NonEmptyList[Response]],
+      responses: NonEmptyList[Response],
+      wildcard: MethodValue
+  ) = {
+    responses match {
+      case NonEmptyList(head, tHead :: tTail) =>
+        OptionT.liftF(m.put(wildcard, NonEmptyList.of(tHead, tTail: _*) :+ head))
+      case nel @ NonEmptyList(_, Nil) => OptionT.liftF(m.put(MethodValue.Wildcard, nel))
     }
   }
 
