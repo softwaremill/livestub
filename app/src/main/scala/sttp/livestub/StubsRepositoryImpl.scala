@@ -49,14 +49,14 @@ case class StubsRepositoryImpl(
   }
 
   private def cycleResponses(
-      m: IoMap[MethodValue, NonEmptyList[Response]],
+      methodsToResponses: IoMap[MethodValue, NonEmptyList[Response]],
       responses: NonEmptyList[Response],
-      wildcard: MethodValue
+      method: MethodValue
   ) = {
     responses match {
       case NonEmptyList(head, tHead :: tTail) =>
-        OptionT.liftF(m.put(wildcard, NonEmptyList.of(tHead, tTail: _*) :+ head))
-      case nel @ NonEmptyList(_, Nil) => OptionT.liftF(m.put(MethodValue.Wildcard, nel))
+        OptionT.liftF(methodsToResponses.put(method, NonEmptyList.of(tHead, tTail: _*) :+ head))
+      case nel @ NonEmptyList(_, Nil) => OptionT.liftF(methodsToResponses.put(MethodValue.Wildcard, nel))
     }
   }
 
