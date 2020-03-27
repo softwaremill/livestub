@@ -1,6 +1,5 @@
 package sttp.livestub.sdk
 
-import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.{Request, SttpBackend, Response => SttpResponse}
 import sttp.livestub.api._
 import sttp.model.Uri
@@ -9,11 +8,11 @@ import sttp.tapir.client.sttp._
 
 import scala.collection.immutable.ListSet
 
-class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebSocketHandler]) {
+class LiveStubSdk[F[_], -SS, -WS_HANDLER[_]](uri: Uri)(implicit backend: SttpBackend[F, SS, WS_HANDLER]) {
 
-  def when[E, O, R](sttpRequest: Request[Either[E, O], R]): OutgoingStubbing[F] = {
+  def when[E, O, R](sttpRequest: Request[Either[E, O], R]): OutgoingStubbing[F, SS, WS_HANDLER] = {
     val req = Request(sttpRequest.method, sttpRequest.uri.path, sttpRequest.uri.multiParams.toMultiSeq)
-    new OutgoingStubbing[F](
+    new OutgoingStubbing(
       uri,
       RequestStub(
         req.method,
@@ -22,7 +21,7 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebS
     )
   }
 
-  def when[I, E, O, S](endpoint: Endpoint[I, E, O, S]): OutgoingStubbing[F] = {
+  def when[I, E, O, S](endpoint: Endpoint[I, E, O, S]): OutgoingStubbing[F, SS, WS_HANDLER] = {
     new OutgoingStubbing(
       uri,
       RequestStub(
@@ -32,13 +31,13 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Nothing, WebS
     )
   }
 
-  def when(requestStub: RequestStub): OutgoingStubbing[F] = {
+  def when(requestStub: RequestStub): OutgoingStubbing[F, SS, WS_HANDLER] = {
     new OutgoingStubbing(uri, requestStub)
   }
 }
 
-class OutgoingStubbing[F[_]](uri: Uri, requestStub: RequestStub)(
-    implicit backend: SttpBackend[F, Nothing, WebSocketHandler]
+class OutgoingStubbing[F[_], -SS, -WS_HANDLER[_]](uri: Uri, requestStub: RequestStub)(
+    implicit backend: SttpBackend[F, SS, WS_HANDLER]
 ) {
   def thenRespond(response: Response): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
     LiveStubApi.setupEndpoint
