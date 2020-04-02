@@ -114,6 +114,7 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Not
   val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
   val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
-  livestub.when(myEndpoint).thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
+  livestub.when(myEndpoint)
+          .thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
 }
 ```
