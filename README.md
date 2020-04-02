@@ -73,7 +73,7 @@ curl 'localhost:7070/__routes'
 
 set many responses which will be cycled through
 ```
-curl -X POST 'localhost:7070/__set' \
+curl -X POST 'localhost:7070/__set_many' \
 -d '{"when":{"method":"GET", "url":"animals/1/status"}, "then": [
     {"statusCode":200, "body":{"status": "happy"} },
     {"statusCode":200, "body":{"status": "unhappy"} }
