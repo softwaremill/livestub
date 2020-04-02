@@ -23,7 +23,7 @@ With livestub you can easly setup http server that behaves exactly as you would 
 ### stub
 ```
 curl -X POST 'localhost:7070/__set' \
--d '{"when":{"method":"GET", "path":"animals/1/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
+-d '{"when":{"method":"GET", "url":"animals/1/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
 ```
 
 ### invoke
@@ -43,19 +43,19 @@ Livestub supports wildcard http methods as well as wildcard path parameters.
 wildcard method:
 ```
 curl -X POST 'localhost:7070/__set' \
--d '{"when":{"method":"*", "path":"dogs"}, "then": {"statusCode":200, "body":{"status": "OK"} }}'
+-d '{"when":{"method":"*", "url":"dogs"}, "then": {"statusCode":200, "body":{"status": "OK"} }}'
 ```
 
 wildcard path param: 
 ```
 curl -X POST 'localhost:7070/__set' \
--d '{"when":{"method":"GET", "path":"dogs/*/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
+-d '{"when":{"method":"GET", "url":"dogs/*/status"}, "then": {"statusCode":200, "body":{"status": "happy"} }}'
 ```
 
 multiwildcard path param: (this one catches all routes which originate from `/dogs`)
 ```
 curl -X POST 'localhost:7070/__set' \
--d '{"when":{"method":"GET", "path":"dogs/**"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
+-d '{"when":{"method":"GET", "url":"dogs/**"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
 ```
 
 ### additional methods
@@ -69,4 +69,14 @@ show stubbed routes
 
 ```
 curl 'localhost:7070/__routes'
+```
+
+set many responses which will be cycled through
+```
+curl -X POST 'localhost:7070/__set' \
+-d '{"when":{"method":"GET", "url":"animals/1/status"}, "then": [
+    {"statusCode":200, "body":{"status": "happy"} },
+    {"statusCode":200, "body":{"status": "unhappy"} }
+  ]
+}'
 ```
