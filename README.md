@@ -80,3 +80,35 @@ curl -X POST 'localhost:7070/__set_many' \
   ]
 }'
 ```
+
+### stubbing from code - sdk
+stubbing an arbitrary request
+```scala
+AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
+      val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+      livestub
+        .when(RequestStub(MethodValue.Wildcard, "/user/*/status"))
+        .thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
+    }
+```
+
+stubbing given [sttp](https://github.com/softwaremill/sttp) request:
+```scala
+    AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
+      val request = basicRequest
+        .body(Map("name" -> "John", "surname" -> "doe"))
+        .post(uri"https://httpbin.org/post?signup=123")
+
+      val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+      livestub.when(request).thenRespond(Response(Some(Json.fromString("OK")), StatusCode.Ok))
+    }
+```
+stubbing given [tapir](https://github.com/softwaremill/tapir) endpoint:
+```scala
+    AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
+      val myEndpoint = endpoint.get.in("/status").out(stringBody)
+
+      val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+      livestub.when(myEndpoint).thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
+    }
+```
