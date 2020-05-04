@@ -1,2 +1,2 @@
 addSbtPlugin("com.softwaremill.sbt-softwaremill" % "sbt-softwaremill" % "1.8.6")
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.7.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.7.1")
