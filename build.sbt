@@ -1,4 +1,6 @@
+import com.softwaremill.PublishTravis
 import com.softwaremill.PublishTravis.publishTravisSettings
+import sbtrelease.ReleaseStateTransformations._
 
 val http4sVersion = "0.21.4"
 val circeVersion = "0.13.0"
@@ -86,8 +88,53 @@ lazy val sdk: Project = (project in file("sdk"))
   )
   .dependsOn(api)
 
+lazy val docs = project
+  .in(file("generated-docs")) // important: it must not be docs/
+  .settings(commonSettings)
+  .settings(publishArtifact := false, name := "docs")
+  .dependsOn(sdk)
+  .enablePlugins(MdocPlugin)
+  .settings(
+    mdocIn := file("docs-sources"),
+    moduleName := "livestub-docs",
+    mdocVariables := Map(
+      "VERSION" -> version.value
+    ),
+    mdocOut := file(".")
+  )
+
 lazy val rootProject = (project in file("."))
   .settings(commonSettings)
   .settings(publishArtifact := false, name := "livestub")
   .settings(publishTravisSettings)
-  .aggregate(app, api, sdk)
+  .settings(releaseProcess := {
+    if (PublishTravis.isCommitRelease.value) {
+      Seq(
+        checkSnapshotDependencies,
+        inquireVersions,
+        runClean,
+        runTest,
+        setReleaseVersion,
+        releaseStepInputTask(docs / mdoc),
+        stageChanges("README.md"),
+        commitReleaseVersion,
+        tagRelease,
+        setNextVersion,
+        commitNextVersion,
+        pushChanges
+      )
+    } else {
+      Seq(
+        publishArtifacts,
+        releaseStepCommand("sonatypeBundleRelease")
+      )
+    }
+  })
+  .aggregate(app, api, sdk, docs)
+
+def stageChanges(fileName: String): ReleaseStep = { s: State =>
+  val settings = Project.extract(s)
+  val vcs = settings.get(releaseVcs).get
+  vcs.add(fileName) !! s.log
+  s
+}
