@@ -20,13 +20,12 @@ object LiveStubApi extends LiveStubTapirSupport with JsonSupport with TapirCodec
       .in(jsonBody[StubManyEndpointRequest])
       .out(jsonBody[StubEndpointResponse])
 
-  val catchEndpoint
-      : Endpoint[Request, (StatusCode, String), (StatusCode, Option[Json], Seq[(String, String)]), Nothing] =
+  val catchEndpoint: Endpoint[Request, (StatusCode, String), (StatusCode, Option[Json], List[Header]), Nothing] =
     endpoint
       .in(
         (extractFromRequest(_.method) and paths and queryParams)
           .map(s => Request(s._1, s._2, s._3.toMultiSeq))(r =>
-            (r.method.method, r.paths.map(_.path), MultiQueryParams.fromMultiSeq(r.queries.map(q => q.key -> q.values)))
+            (r.method.method, r.paths.map(_.path), QueryParams.fromMultiSeq(r.queries.map(q => q.key -> q.values)))
           )
       )
       .out(statusCode and jsonBody[Option[Json]] and headers)

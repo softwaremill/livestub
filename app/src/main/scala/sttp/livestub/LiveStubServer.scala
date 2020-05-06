@@ -10,7 +10,7 @@ import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
 import sttp.livestub.api._
-import sttp.model.StatusCode
+import sttp.model.{Header, StatusCode}
 import sttp.tapir.docs.openapi._
 import sttp.tapir.openapi.Server
 import sttp.tapir.openapi.circe.yaml._
@@ -47,7 +47,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       }
 
   val catchEndpoint
-      : ServerEndpoint[Request, (StatusCode, String), (StatusCode, Option[Json], Seq[(String, String)]), Nothing, IO] =
+      : ServerEndpoint[Request, (StatusCode, String), (StatusCode, Option[Json], List[Header]), Nothing, IO] =
     LiveStubApi.catchEndpoint
       .serverLogic { request =>
         log(s"Got request: $request") >>
@@ -55,10 +55,12 @@ class LiveStubServer(port: Int, quiet: Boolean) {
             .get(request)
             .map(response =>
               response
-                .map(r => (r.statusCode, r.body, r.headers.map(h => h.name -> h.value)).asRight[(StatusCode, String)])
+                .map(r =>
+                  (r.statusCode, r.body, r.headers.map(h => Header(h.name, h.value))).asRight[(StatusCode, String)]
+                )
                 .getOrElse(
                   (StatusCode.NotFound -> "Not mocked.")
-                    .asLeft[(StatusCode, Option[Json], Seq[(String, String)])]
+                    .asLeft[(StatusCode, Option[Json], List[Header])]
                 )
             )
       }
@@ -82,8 +84,8 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       IO.unit
     }
 
-  private def app(
-      implicit ec: ExecutionContext,
+  private def app(implicit
+      ec: ExecutionContext,
       contextShift: ContextShift[IO],
       timer: Timer[IO]
   ): Resource[IO, Unit] =

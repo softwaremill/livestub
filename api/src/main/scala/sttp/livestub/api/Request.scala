@@ -18,6 +18,6 @@ object Request {
 
   def apply(method: Method, path: String): Request = {
     val uri = Uri.parse(s"http://localhost/$path").right.get
-    Request(method, uri.path.filter(_.nonEmpty), uri.multiParams.toMultiSeq)
+    Request(method, uri.path.filter(_.nonEmpty), uri.params.toMultiSeq)
   }
 }
