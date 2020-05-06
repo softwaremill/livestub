@@ -11,7 +11,7 @@ import scala.collection.immutable.ListSet
 class LiveStubSdk[F[_], -SS, -WS_HANDLER[_]](uri: Uri)(implicit backend: SttpBackend[F, SS, WS_HANDLER]) {
 
   def when[E, O, R](sttpRequest: Request[Either[E, O], R]): OutgoingStubbing[F, SS, WS_HANDLER] = {
-    val req = Request(sttpRequest.method, sttpRequest.uri.path, sttpRequest.uri.multiParams.toMultiSeq)
+    val req = Request(sttpRequest.method, sttpRequest.uri.path, sttpRequest.uri.params.toMultiSeq)
     new OutgoingStubbing(
       uri,
       RequestStub(
@@ -36,8 +36,8 @@ class LiveStubSdk[F[_], -SS, -WS_HANDLER[_]](uri: Uri)(implicit backend: SttpBac
   }
 }
 
-class OutgoingStubbing[F[_], -SS, -WS_HANDLER[_]](uri: Uri, requestStub: RequestStub)(
-    implicit backend: SttpBackend[F, SS, WS_HANDLER]
+class OutgoingStubbing[F[_], -SS, -WS_HANDLER[_]](uri: Uri, requestStub: RequestStub)(implicit
+    backend: SttpBackend[F, SS, WS_HANDLER]
 ) {
   def thenRespond(response: Response): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {
     LiveStubApi.setupEndpoint

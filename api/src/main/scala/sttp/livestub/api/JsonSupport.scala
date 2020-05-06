@@ -21,17 +21,19 @@ trait JsonSupport extends AutoDerivation {
   }
 
   implicit val requestPathAndQueryEncoder: Encoder[RequestPathAndQuery] = {
-    def pathElementToString(p: PathElement): String = p match {
-      case PathElement.Fixed(path)   => path
-      case PathElement.Wildcard      => "*"
-      case PathElement.MultiWildcard => "**"
-    }
-    def queryElementToString(q: QueryElement): String = q match {
-      case QueryElement.FixedQuery(key, values) =>
-        if (values.nonEmpty) values.map(v => s"$key=$v").mkString("&") else key
-      case QueryElement.WildcardValueQuery(key) => s"$key=*"
-      case QueryElement.WildcardQuery           => "*"
-    }
+    def pathElementToString(p: PathElement): String =
+      p match {
+        case PathElement.Fixed(path)   => path
+        case PathElement.Wildcard      => "*"
+        case PathElement.MultiWildcard => "**"
+      }
+    def queryElementToString(q: QueryElement): String =
+      q match {
+        case QueryElement.FixedQuery(key, values) =>
+          if (values.nonEmpty) values.map(v => s"$key=$v").mkString("&") else key
+        case QueryElement.WildcardValueQuery(key) => s"$key=*"
+        case QueryElement.WildcardQuery           => "*"
+      }
     Encoder.encodeString.contramap(r =>
       List(r.paths.map(pathElementToString).mkString("/"), r.query.queries.map(queryElementToString).mkString("&"))
         .mkString("?")

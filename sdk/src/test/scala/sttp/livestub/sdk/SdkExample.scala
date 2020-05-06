@@ -7,8 +7,9 @@ import org.scalatest.matchers.should.Matchers
 import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client.{SttpBackend, Response => _, _}
-import sttp.livestub.api.{MethodValue, RequestStub, Response, ResponseHeader}
+import sttp.livestub.api.{MethodValue, RequestStub, Response}
 import sttp.model.StatusCode
+import sttp.model.Header
 import sttp.tapir.Tapir
 
 import scala.concurrent.ExecutionContext
@@ -33,7 +34,7 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
       val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
       val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
-      livestub.when(myEndpoint).thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
+      livestub.when(myEndpoint).thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
     }
   }
 
@@ -42,7 +43,7 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
       val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
       livestub
         .when(RequestStub(MethodValue.Wildcard, "/user/*/status"))
-        .thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
+        .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
     }
   }
 }
