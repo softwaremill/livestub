@@ -110,7 +110,7 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Not
   val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
   livestub
     .when(RequestStub(MethodValue.Wildcard, "/user/*/status"))
-    .thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
+    .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
 ```
 stub given [sttp](https://github.com/softwaremill/sttp) request:
@@ -133,6 +133,6 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Not
 
   val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
   livestub.when(myEndpoint)
-          .thenRespond(Response.emptyBody(StatusCode.Ok, List(ResponseHeader("X-App", "123"))))
+          .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
 ```
