@@ -4,7 +4,7 @@ import sbtrelease.ReleaseStateTransformations._
 
 val http4sVersion = "0.21.4"
 val circeVersion = "0.13.0"
-val tapirVersion = "0.14.4"
+val tapirVersion = "0.14.5"
 
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
