@@ -83,7 +83,7 @@ lazy val sdk: Project = (project in file("sdk"))
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.0",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
-      "org.scalatest" %% "scalatest" % "3.1.2" % Test
+      "org.scalatest" %% "scalatest" % "3.2.0" % Test
     )
   )
   .dependsOn(api)
