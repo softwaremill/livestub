@@ -2,7 +2,7 @@ import com.softwaremill.PublishTravis
 import com.softwaremill.PublishTravis.publishTravisSettings
 import sbtrelease.ReleaseStateTransformations._
 
-val http4sVersion = "0.21.5"
+val http4sVersion = "0.21.6"
 val circeVersion = "0.13.0"
 val tapirVersion = "0.16.1"
 
