@@ -81,7 +81,7 @@ lazy val sdk: Project = (project in file("sdk"))
   .settings(
     name := "livestub-sdk",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.1",
+      "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.2",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.0" % Test
     )
