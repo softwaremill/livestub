@@ -61,7 +61,7 @@ lazy val app: Project = (project in file("app"))
       "com.monovore" %% "decline" % "1.2.0",
       "org.typelevel" %% "cats-core" % "2.1.1",
       "com.monovore" %% "decline-effect" % "1.2.0",
-      "org.scalatest" %% "scalatest" % "3.1.1" % Test
+      "org.scalatest" %% "scalatest" % "3.1.3" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
   .dependsOn(api)
