@@ -58,9 +58,9 @@ lazy val app: Project = (project in file("app"))
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
-      "com.monovore" %% "decline" % "1.4.0",
+      "com.monovore" %% "decline" % "2.0.0",
       "org.typelevel" %% "cats-core" % "2.5.0",
-      "com.monovore" %% "decline-effect" % "1.4.0",
+      "com.monovore" %% "decline-effect" % "2.0.0",
       "org.scalatest" %% "scalatest" % "3.2.7" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
