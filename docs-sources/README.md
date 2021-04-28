@@ -90,13 +90,13 @@ libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.
 Given that very self-explanatory bootstrap:
 ```scala mdoc:silent
 import cats.effect._
-import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.client.asynchttpclient._
-import sttp.client.SttpBackend
+import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import sttp.client3.asynchttpclient._
+import sttp.client3.SttpBackend
 import scala.concurrent._
 import sttp.livestub.sdk._
 import sttp.livestub.api._
-import sttp.client.{Response => _, _}
+import sttp.client3.{Response => _, _}
 import sttp.model._
 import io.circe.Json
 
@@ -106,8 +106,8 @@ implicit val timer = IO.timer(ExecutionContext.global)
 
 you can stub an arbitrary request:
 ```scala mdoc:compile-only
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
-  val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub
     .when(RequestStub(MethodValue.Wildcard, "/user/*/status"))
     .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
@@ -115,12 +115,12 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Not
 ```
 stub given [sttp](https://github.com/softwaremill/sttp) request:
 ```scala mdoc:compile-only
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
   val request = basicRequest
     .body(Map("name" -> "John", "surname" -> "doe"))
     .post(uri"https://httpbin.org/post?signup=123")
 
-  val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub.when(request).thenRespond(Response(Some(Json.fromString("OK")), StatusCode.Ok))
 }
 ```
@@ -128,10 +128,10 @@ or stub given [tapir](https://github.com/softwaremill/tapir) endpoint:
 ```scala mdoc:compile-only
 import sttp.tapir._
 
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
   val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
-  val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub.when(myEndpoint)
           .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
