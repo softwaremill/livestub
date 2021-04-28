@@ -28,7 +28,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
   def run(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
 
-  val setupEndpoint: ServerEndpoint[StubEndpointRequest, Unit, StubEndpointResponse, Nothing, IO] =
+  val setupEndpoint: ServerEndpoint[StubEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
     LiveStubApi.setupEndpoint
       .serverLogic { req =>
         log(s"Got mocking request $req") >>
@@ -37,7 +37,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
             .map(_ => StubEndpointResponse().asRight[Unit])
       }
 
-  val setupManyEndpoint: ServerEndpoint[StubManyEndpointRequest, Unit, StubEndpointResponse, Nothing, IO] =
+  val setupManyEndpoint: ServerEndpoint[StubManyEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
     LiveStubApi.setupManyEndpoint
       .serverLogic { req =>
         log(s"Got mocking request $req") >>
@@ -46,8 +46,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
             .map(_ => StubEndpointResponse().asRight[Unit])
       }
 
-  val catchEndpoint
-      : ServerEndpoint[Request, (StatusCode, String), (StatusCode, Option[Json], List[Header]), Nothing, IO] =
+  val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Option[Json], List[Header]), Any, IO] =
     LiveStubApi.catchEndpoint
       .serverLogic { request =>
         log(s"Got request: $request") >>
@@ -65,17 +64,18 @@ class LiveStubServer(port: Int, quiet: Boolean) {
             )
       }
 
-  val routesEndpoint: ServerEndpoint[Unit, Unit, StubbedRoutesResponse, Nothing, IO] =
+  val routesEndpoint: ServerEndpoint[Unit, Unit, StubbedRoutesResponse, Any, IO] =
     LiveStubApi.routesEndpoint.serverLogic { _ =>
       stubbedCalls
         .getAll()
         .map(list => StubbedRoutesResponse(list.map(i => StubEndpointRequest(i._1, i._2.head))).asRight[Unit])
     }
 
-  val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Nothing, IO] =
+  val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Any, IO] =
     LiveStubApi.clearEndpoint.serverLogic(_ => stubbedCalls.clear().map(_.asRight[Unit]))
 
-  private val endpoints = List(setupEndpoint, setupManyEndpoint, clearEndpoint, routesEndpoint, catchEndpoint)
+  private val endpoints: List[ServerEndpoint[_, _, _, Any, IO]] =
+    List(setupEndpoint, setupManyEndpoint, clearEndpoint, routesEndpoint, catchEndpoint)
 
   private def log(message: String) =
     if (!quiet) {
@@ -89,19 +89,22 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       contextShift: ContextShift[IO],
       timer: Timer[IO]
   ): Resource[IO, Unit] =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](ec)
       .bindHttp(port, "0.0.0.0")
       .withHttpApp(
-        Router("/__admin" -> docsRoutes.routes[IO], "/" -> endpoints.toRoutes).orNotFound
+        Router[IO](
+          "/__admin" -> docsRoutes.routes[IO],
+          "/" -> Http4sServerInterpreter
+            .toRoutes[IO](endpoints)
+        ).orNotFound
       )
       .resource
       .void
 
   private val docsRoutes: SwaggerHttp4s = {
-    val openapi =
-      endpoints
-        .toOpenAPI("Trading-Offering", "1.0")
-        .copy(servers = List(Server("/", None)))
+    val openapi = OpenAPIDocsInterpreter
+      .serverEndpointsToOpenAPI(endpoints, "Trading-Offering", "1.0")
+      .copy(servers = List(Server("/", None)))
     val yaml = openapi.toYaml
     new SwaggerHttp4s(yaml)
   }

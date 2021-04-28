@@ -4,7 +4,8 @@ import sbtrelease.ReleaseStateTransformations._
 
 val http4sVersion = "0.21.22"
 val circeVersion = "0.13.0"
-val tapirVersion = "0.16.2"
+val tapirVersion = "0.17.19"
+val declineVersion = "1.4.0"
 
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
@@ -58,9 +59,9 @@ lazy val app: Project = (project in file("app"))
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
-      "com.monovore" %% "decline" % "2.0.0",
+      "com.monovore" %% "decline" % declineVersion,
+      "com.monovore" %% "decline-effect" % declineVersion,
       "org.typelevel" %% "cats-core" % "2.6.0",
-      "com.monovore" %% "decline-effect" % "2.0.0",
       "org.scalatest" %% "scalatest" % "3.2.8" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
@@ -81,7 +82,7 @@ lazy val sdk: Project = (project in file("sdk"))
   .settings(
     name := "livestub-sdk",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.9",
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.1.7",
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.3" % Test
     )
