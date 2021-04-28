@@ -1,7 +1,7 @@
 package sttp.livestub
 
 import cats.data.NonEmptyList
-import cats.effect.{Concurrent, ContextShift, ExitCode, IO, Resource, Sync, Timer}
+import cats.effect.{ContextShift, ExitCode, IO, Resource, Sync, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
@@ -89,7 +89,7 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       contextShift: ContextShift[IO],
       timer: Timer[IO]
   ): Resource[IO, Unit] =
-    BlazeServerBuilder[IO]
+    BlazeServerBuilder[IO](ec)
       .bindHttp(port, "0.0.0.0")
       .withHttpApp(
         Router[IO](
