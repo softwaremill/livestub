@@ -136,3 +136,23 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any
           .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
 ```
+
+
+## openapi integration
+
+Openapi specification can be provided to bootstrap livestub server with auto generated response bodies.
+For each given path a request-response stub will be generated matching particular url path with path parameters 
+replaced by wildcard matches. That means that neither query params, request body nor headers are checked when matching
+stubbed endpoint.
+
+Response structure will follow openapi schema. Response data will be created
+based on openapi respective example parameters if provided, otherwise random data will be used(whenever it is possible).
+
+For endpoints, which are defined in openapi specification but for which responses
+couldn't be generated empty response body will be returned.
+
+Usage:
+`--openapi-spec <path_to_file>`
+
+In addition, seed value for random data generator can be passed via:
+`--seed 1234`

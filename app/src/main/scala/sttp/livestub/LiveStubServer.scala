@@ -1,15 +1,16 @@
 package sttp.livestub
 
 import cats.data.NonEmptyList
-import cats.effect.{ContextShift, ExitCode, IO, Resource, Sync, Timer}
+import cats.effect.{ContextShift, ExitCode, IO, Resource, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.Json
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
+import sttp.livestub.RandomValueGenerator.Seed
 import sttp.livestub.api._
+import sttp.livestub.openapi.OpenapiModels.OpenapiDocument
 import sttp.model.{Header, StatusCode}
 import sttp.tapir.docs.openapi._
 import sttp.tapir.openapi.Server
@@ -20,10 +21,7 @@ import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
 import scala.concurrent.ExecutionContext
 
-class LiveStubServer(port: Int, quiet: Boolean) {
-  private implicit def unsafeLogger[F[_]: Sync] = Slf4jLogger.getLogger[F]
-
-  private val stubbedCalls = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
+class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubRepositoryDecorator) extends FLogger {
 
   def run(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): IO[ExitCode] =
     app.use(_ => IO.never).as(ExitCode.Success)
@@ -107,5 +105,19 @@ class LiveStubServer(port: Int, quiet: Boolean) {
       .copy(servers = List(Server("/", None)))
     val yaml = openapi.toYaml
     new SwaggerHttp4s(yaml)
+  }
+}
+
+object LiveStubServer {
+  def apply(port: Int, quiet: Boolean, openapiSpec: Option[OpenapiDocument], seed: Option[Seed]): IO[LiveStubServer] = {
+    initializeRepositoryWithOpenapiSpec(openapiSpec, seed).map(r => new LiveStubServer(port, quiet, r))
+  }
+
+  private def initializeRepositoryWithOpenapiSpec(openapiSpec: Option[OpenapiDocument], seed: Option[Seed]) = {
+    val repository = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
+    openapiSpec match {
+      case Some(spec) => new OpenapiRepositoryInitializer(new RandomValueGenerator(spec, seed)).apply(repository, spec)
+      case None       => IO.pure(repository)
+    }
   }
 }
