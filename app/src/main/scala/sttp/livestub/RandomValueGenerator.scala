@@ -23,7 +23,8 @@ class RandomValueGenerator(spec: OpenapiDocument, seed: Option[Seed]) extends St
 
   def nextRandom(schema: OpenapiSchemaType): Either[String, Json] = {
     schema match {
-      case OpenapiSchemaType.OpenapiSchemaBoolean(_, example) => Right(Json.fromBoolean(example.getOrElse(true)))
+      case OpenapiSchemaType.OpenapiSchemaBoolean(_, example) =>
+        Right(Json.fromBoolean(example.getOrElse(random.nextBoolean())))
       case OpenapiSchemaType.OpenapiSchemaString(_, example) =>
         Right(Json.fromString(example.getOrElse(UUID.randomUUID().toString)))
       case OpenapiSchemaType.OpenapiSchemaDate(_, example) =>
