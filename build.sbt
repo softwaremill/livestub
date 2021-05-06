@@ -4,7 +4,9 @@ import sbtrelease.ReleaseStateTransformations._
 
 val http4sVersion = "0.21.22"
 val circeVersion = "0.13.0"
+val circeYamlVersion = "0.13.1"
 val tapirVersion = "0.17.19"
+val sttpClientVersion = "3.1.9"
 val declineVersion = "1.4.0"
 
 val jsonDependencies = Seq(
@@ -56,16 +58,18 @@ lazy val app: Project = (project in file("app"))
   .settings(
     name := "livestub-app",
     libraryDependencies ++= Seq(
+      "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
       "com.monovore" %% "decline" % declineVersion,
       "com.monovore" %% "decline-effect" % declineVersion,
+      "com.softwaremill.common" %% "tagging" % "2.2.1",
       "org.typelevel" %% "cats-core" % "2.6.0",
       "org.scalatest" %% "scalatest" % "3.2.8" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
-  .dependsOn(api)
+  .dependsOn(api, openapi)
 
 lazy val api: Project = (project in file("api"))
   .settings(commonSettings)
@@ -82,7 +86,7 @@ lazy val sdk: Project = (project in file("sdk"))
   .settings(
     name := "livestub-sdk",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % "3.1.9",
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.3" % Test
     )
@@ -102,6 +106,18 @@ lazy val docs = project
       "VERSION" -> version.value
     ),
     mdocOut := file(".")
+  )
+
+lazy val openapi = project
+  .in(file("openapi"))
+  .settings(commonSettings)
+  .settings(
+    name := "openapi",
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-yaml" % circeYamlVersion,
+      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.4.5" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.8" % Test
+    ) ++ jsonDependencies
   )
 
 lazy val rootProject = (project in file("."))
@@ -131,7 +147,7 @@ lazy val rootProject = (project in file("."))
       )
     }
   })
-  .aggregate(app, api, sdk, docs)
+  .aggregate(app, api, sdk, docs, openapi)
 
 def stageChanges(fileName: String): ReleaseStep = { s: State =>
   val settings = Project.extract(s)
