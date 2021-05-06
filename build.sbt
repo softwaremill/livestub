@@ -64,7 +64,7 @@ lazy val app: Project = (project in file("app"))
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
       "com.monovore" %% "decline" % declineVersion,
       "com.monovore" %% "decline-effect" % declineVersion,
-      "com.softwaremill.common" %% "tagging" % "2.2.1",
+      "com.softwaremill.common" %% "tagging" % "2.3.0",
       "org.typelevel" %% "cats-core" % "2.6.0",
       "org.scalatest" %% "scalatest" % "3.2.8" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
