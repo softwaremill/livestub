@@ -75,9 +75,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Pet"
-          application/xml:
-            schema:
-              $ref: "#/components/schemas/Pet"
           application/x-www-form-urlencoded:
             schema:
               $ref: "#/components/schemas/Pet"
@@ -369,9 +366,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/User"
   /user/createWithList:
     post:
       tags:
@@ -430,9 +424,6 @@ paths:
                 type: string
                 format: date-time
           content:
-            application/xml:
-              schema:
-                type: string
             application/json:
               schema:
                 type: string
@@ -467,9 +458,6 @@ paths:
         "200":
           description: successful operation
           content:
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/User"
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
@@ -547,8 +535,6 @@ components:
             - delivered
         complete:
           type: boolean
-      xml:
-        name: order
     Customer:
       type: object
       properties:
@@ -561,13 +547,8 @@ components:
           example: fehguy
         address:
           type: array
-          xml:
-            name: addresses
-            wrapped: true
           items:
             $ref: "#/components/schemas/Address"
-      xml:
-        name: customer
     Address:
       type: object
       properties:
@@ -583,8 +564,6 @@ components:
         zip:
           type: string
           example: "94301"
-      xml:
-        name: address
     Category:
       type: object
       properties:
@@ -595,8 +574,6 @@ components:
         name:
           type: string
           example: Dogs
-      xml:
-        name: category
     User:
       type: object
       properties:
@@ -627,8 +604,6 @@ components:
           description: User Status
           format: int32
           example: 1
-      xml:
-        name: user
     Tag:
       type: object
       properties:
@@ -637,8 +612,7 @@ components:
           format: int64
         name:
           type: string
-      xml:
-        name: tag
+          example: "tag1"
     Pet:
       required:
         - name
@@ -656,27 +630,21 @@ components:
           $ref: "#/components/schemas/Category"
         photoUrls:
           type: array
-          xml:
-            wrapped: true
           items:
             type: string
-            xml:
-              name: photoUrl
+            example: "http://random-photo-url.com"
         tags:
           type: array
-          xml:
-            wrapped: true
           items:
             $ref: "#/components/schemas/Tag"
         status:
           type: string
           description: pet status in the store
+          example: available
           enum:
             - available
             - pending
             - sold
-      xml:
-        name: pet
     ApiResponse:
       type: object
       properties:
@@ -687,16 +655,11 @@ components:
           type: string
         message:
           type: string
-      xml:
-        name: "##default"
   requestBodies:
     Pet:
       description: Pet object that needs to be added to the store
       content:
         application/json:
-          schema:
-            $ref: "#/components/schemas/Pet"
-        application/xml:
           schema:
             $ref: "#/components/schemas/Pet"
     UserArray:
