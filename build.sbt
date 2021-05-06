@@ -1,6 +1,5 @@
-import com.softwaremill.PublishTravis
-import com.softwaremill.PublishTravis.publishTravisSettings
-import sbtrelease.ReleaseStateTransformations._
+import com.softwaremill.UpdateVersionInDocs
+import sbt.Def
 
 val http4sVersion = "0.21.22"
 val circeVersion = "0.13.0"
@@ -37,17 +36,23 @@ lazy val dockerSettings = Seq(
   dockerUpdateLatest := true
 )
 
-lazy val commonSettings = commonSmlBuildSettings ++ ossPublishSettings ++ acyclicSettings ++ Seq(
+lazy val commonSettings: Seq[Def.Setting[_]] = commonSmlBuildSettings ++ ossPublishSettings ++ Seq(
   organization := "com.softwaremill.sttp.livestub",
   scalaVersion := "2.13.1",
-  scalafmtOnCompile := true,
-  libraryDependencies ++= Seq(compilerPlugin("com.softwaremill.neme" %% "neme-plugin" % "0.0.5")),
+  scalafmtOnCompile := false,
   scmInfo := Some(
     ScmInfo(
       url("https://github.com/softwaremill/livestub"),
       "git@github.com:softwaremill/livestub.git"
     )
-  )
+  ),
+  updateDocs := Def.taskDyn {
+    val files1 = UpdateVersionInDocs(sLog.value, organization.value, version.value)
+    Def.task {
+      (docs / mdoc).toTask("").value
+      files1 ++ Seq(file("generated-doc/out"))
+    }
+  }.value
 )
 
 lazy val app: Project = (project in file("app"))
@@ -123,35 +128,4 @@ lazy val openapi = project
 lazy val rootProject = (project in file("."))
   .settings(commonSettings)
   .settings(publishArtifact := false, name := "livestub")
-  .settings(publishTravisSettings)
-  .settings(releaseProcess := {
-    if (PublishTravis.isCommitRelease.value) {
-      Seq(
-        checkSnapshotDependencies,
-        inquireVersions,
-        runClean,
-        runTest,
-        setReleaseVersion,
-        releaseStepInputTask(docs / mdoc),
-        stageChanges("README.md"),
-        commitReleaseVersion,
-        tagRelease,
-        setNextVersion,
-        commitNextVersion,
-        pushChanges
-      )
-    } else {
-      Seq(
-        publishArtifacts,
-        releaseStepCommand("sonatypeBundleRelease")
-      )
-    }
-  })
   .aggregate(app, api, sdk, docs, openapi)
-
-def stageChanges(fileName: String): ReleaseStep = { s: State =>
-  val settings = Project.extract(s)
-  val vcs = settings.get(releaseVcs).get
-  vcs.add(fileName) !! s.log
-  s
-}
