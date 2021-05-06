@@ -108,16 +108,27 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubReposit
   }
 }
 
-object LiveStubServer {
+object LiveStubServer extends FLogger {
   def apply(port: Int, quiet: Boolean, openapiSpec: Option[OpenapiDocument], seed: Option[Seed]): IO[LiveStubServer] = {
-    initializeRepositoryWithOpenapiSpec(openapiSpec, seed).map(r => new LiveStubServer(port, quiet, r))
+    val repository = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
+    openapiSpecToRequestResponseStub(openapiSpec, seed)
+      .traverse { case (request, response) =>
+        Logger[IO].info(s"Stubbing $request with response $response") >>
+          repository.put(
+            request,
+            NonEmptyList.one(response)
+          )
+      }
+      .as(repository)
+      .map(r => new LiveStubServer(port, quiet, r))
   }
 
-  private def initializeRepositoryWithOpenapiSpec(openapiSpec: Option[OpenapiDocument], seed: Option[Seed]) = {
-    val repository = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
+  private def openapiSpecToRequestResponseStub(openapiSpec: Option[OpenapiDocument], seed: Option[Seed]) = {
     openapiSpec match {
-      case Some(spec) => new OpenapiRepositoryInitializer(new RandomValueGenerator(spec, seed)).apply(repository, spec)
-      case None       => IO.pure(repository)
+      case Some(spec) =>
+        new OpenapiStubsCreator(new RandomValueGenerator(spec.components.schemas, seed))
+          .apply(spec.paths)
+      case None => List.empty
     }
   }
 }
