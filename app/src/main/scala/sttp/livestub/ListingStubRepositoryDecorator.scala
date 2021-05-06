@@ -15,7 +15,7 @@ class ListingStubRepositoryDecorator(repository: StubRepository) extends StubRep
   override def get(request: Request): IO[Option[Response]] = repository.get(request)
 
   override def put(request: RequestStub, responses: NonEmptyList[Response]): IO[Unit] = {
-    repository.put(request, responses) >> IO.delay(stubs.add(request -> responses))
+    repository.put(request, responses) >> IO.delay(stubs.add(request -> responses)).void
   }
 
   override def clear(): IO[Unit] = {
