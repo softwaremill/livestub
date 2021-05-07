@@ -16,6 +16,8 @@ object RequestPathAndQuery {
           path.split("/").toList.filter(_.nonEmpty).map(PathElement.fromString),
           RequestQuery(ListSet.empty)
         )
+      case Nil => RequestPathAndQuery(List.empty, RequestQuery(ListSet.empty))
+      case _   => throw new IllegalArgumentException(s"Malformed url $str")
     }
   }
 }
