@@ -142,7 +142,7 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any
 
 Openapi specification can be provided to bootstrap livestub server with auto generated endpoints.
 For each given path a request-response stub will be generated matching particular url path with path parameters 
-replaced by wildcard matches. That means that neither query params, request body nor headers are checked when matching
+replaced by wildcard matches and wildcard matches for required query parameters. That means that neither optional query parameters, request body nor headers are checked when matching
 stubbed endpoint.
 
 Response structure will follow openapi schema. Response data will be created
