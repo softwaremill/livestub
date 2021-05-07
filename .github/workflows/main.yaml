@@ -53,4 +53,4 @@ jobs:
           fetch-depth: 0
       - uses: coursier/cache-action@v5
       - uses: olafurpg/setup-scala@v10
-      - run: sbt docker:publishLocal
+      - run: sbt docker:publish
