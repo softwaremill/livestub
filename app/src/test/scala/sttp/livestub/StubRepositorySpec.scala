@@ -261,6 +261,37 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
     repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response
   }
 
+  it should "ambiguous matching with optional query params should be resolved using order of definitions" in {
+    val repository = StubsRepositoryImpl()
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
+
+    (for {
+      _ <- repository
+        .put(
+          RequestStub(
+            MethodValue.FixedMethod(Method.GET),
+            RequestPathAndQuery(
+              List(PathElement.Fixed("admin")),
+              QueryStub(ListSet())
+            )
+          ),
+          NonEmptyList.one(response)
+        )
+      _ <- repository.put(
+        RequestStub(
+          MethodValue.FixedMethod(Method.POST),
+          RequestPathAndQuery(
+            List(PathElement.Fixed("admin")),
+            QueryStub(ListSet(QueryElement.WildcardValueQuery("p", isRequired = false)))
+          )
+        ),
+        NonEmptyList.one(response)
+      )
+    } yield ()).unsafeRunSync()
+    repository.get(Request(Method.POST, "/admin?p=1")).unsafeRunSync().value shouldBe response
+    repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response
+  }
+
   it should "cycle through responses" in {
     val repository = StubsRepositoryImpl()
     val response1 = Response.withJsonBody(Json.fromString("1"), StatusCode.Ok)

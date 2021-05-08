@@ -4,7 +4,7 @@ import scala.collection.immutable.ListSet
 
 case class QueryStub(queries: ListSet[QueryElement]) {
   def matches(`given`: List[RequestQuery]): Boolean = {
-    queries.exists(_.isInstanceOf[QueryElement.WildcardQuery.type]) || queries
+    `given`.forall(rq => queries.exists(qe => qe.matches(rq))) && queries
       .filter(_.isRequired)
       .forall(qe => `given`.exists(rq => qe.matches(rq)))
   }

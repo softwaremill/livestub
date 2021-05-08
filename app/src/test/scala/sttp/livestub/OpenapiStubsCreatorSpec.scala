@@ -4,16 +4,7 @@ import com.softwaremill.tagging.Tagger
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.livestub.OpenapiStubsCreatorSpec.{CategoryComponent, PetComponent, TagComponent}
-import sttp.livestub.api.{
-  MethodValue,
-  PathElement,
-  QueryElement,
-  QueryStub,
-  RequestPathAndQuery,
-  RequestQuery,
-  RequestStub,
-  Response
-}
+import sttp.livestub.api.{MethodValue, PathElement, QueryElement, QueryStub, RequestPathAndQuery, RequestStub, Response}
 import sttp.livestub.openapi.OpenapiModels.ResponseStatusCode.Fixed
 import sttp.livestub.openapi.OpenapiModels.{
   OpenapiParameter,
@@ -172,6 +163,61 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
       ) -> Response(
         Some(generatedBody),
         StatusCode.Ok,
+        List.empty
+      )
+    )
+  }
+
+  it should "convert updatePetWithForm to stub" in {
+    val path = OpenapiPath(
+      "/pet/{id}",
+      List(
+        OpenapiPathMethod(
+          Method.POST,
+          List(
+            OpenapiParameter(
+              "petId",
+              OpenapiParamType.Path,
+              Some(true),
+              Some("ID of pet that needs to be updated"),
+              OpenapiSchemaLong(false, None)
+            ),
+            OpenapiParameter(
+              "name",
+              OpenapiParamType.Query,
+              None,
+              Some("Name of pet that needs to be updated"),
+              OpenapiSchemaString(false, None)
+            ),
+            OpenapiParameter(
+              "status",
+              OpenapiParamType.Query,
+              None,
+              Some("Status of pet that needs to be updated"),
+              OpenapiSchemaString(false, None)
+            )
+          ),
+          List(OpenapiResponse(Fixed(StatusCode.MethodNotAllowed), "Invalid input", List())),
+          None,
+          Some("Updates a pet in the store with form data")
+        )
+      )
+    )
+    creator(List(path)) shouldBe List(
+      RequestStub(
+        MethodValue.FixedMethod(Method.POST),
+        RequestPathAndQuery(
+          List(PathElement.Fixed("pet"), PathElement.Wildcard),
+          QueryStub(
+            ListSet(
+              QueryElement.WildcardValueQuery("name", isRequired = false),
+              QueryElement.WildcardValueQuery("status", isRequired = false)
+            )
+          )
+        )
+      ) -> Response(
+        None,
+        StatusCode.MethodNotAllowed,
         List.empty
       )
     )
