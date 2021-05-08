@@ -9,7 +9,7 @@ import sttp.livestub.api.{
   PathElement,
   QueryElement,
   RequestPathAndQuery,
-  RequestQuery,
+  QueryStub,
   RequestStub,
   Response,
   StubEndpointRequest,
@@ -26,13 +26,13 @@ class RequestStubSpec extends AnyFlatSpec with Matchers {
   it should "parse path" in {
     RequestStub(MethodValue.Wildcard, "/admin/status").url shouldBe RequestPathAndQuery(
       List(PathElement.Fixed("admin"), PathElement.Fixed("status")),
-      RequestQuery(ListSet.empty)
+      QueryStub(ListSet.empty)
     )
   }
 
   it should "parse path with query" in {
-    RequestStub(MethodValue.Wildcard, "/admin/status?filter=true").url.query shouldBe RequestQuery(
-      ListSet.from(List(QueryElement.FixedQuery("filter", List("true"))))
+    RequestStub(MethodValue.Wildcard, "/admin/status?filter=true").url.query shouldBe QueryStub(
+      ListSet.from(List(QueryElement.FixedQuery("filter", List("true"), isRequired = true)))
     )
   }
 

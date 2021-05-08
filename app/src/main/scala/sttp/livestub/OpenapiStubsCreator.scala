@@ -3,7 +3,7 @@ package sttp.livestub
 import cats.syntax.all._
 import com.typesafe.scalalogging.StrictLogging
 import sttp.livestub.api.QueryElement.WildcardValueQuery
-import sttp.livestub.api.{MethodValue, QueryElement, RequestPathAndQuery, RequestQuery, RequestStub, Response}
+import sttp.livestub.api.{MethodValue, QueryElement, RequestPathAndQuery, QueryStub, RequestStub, Response}
 import sttp.livestub.openapi.OpenapiModels.{OpenapiPath, OpenapiResponseContent, ResponseStatusCode}
 import sttp.livestub.openapi.OpenapiParamType
 import sttp.model.{MediaType, StatusCode}
@@ -22,13 +22,11 @@ class OpenapiStubsCreator(generator: RandomValueGenerator) extends StrictLogging
             RequestPathAndQuery
               .fromString(path.url.replaceAll("\\{\\w+\\}", "*"))
               .copy(query =
-                RequestQuery(
+                QueryStub(
                   ListSet(
                     method.parameters
-                      .filter(p =>
-                        p.in == OpenapiParamType.Query && p.required.getOrElse(false)
-                      ) //TODO requirement should be a property of query stub
-                      .map(query => QueryElement.WildcardValueQuery(query.name)): _*
+                      .filter(p => p.in == OpenapiParamType.Query)
+                      .map(query => QueryElement.WildcardValueQuery(query.name, query.required.getOrElse(false))): _*
                   )
                 )
               )

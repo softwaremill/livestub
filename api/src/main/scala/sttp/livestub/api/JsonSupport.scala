@@ -29,10 +29,10 @@ trait JsonSupport extends AutoDerivation {
       }
     def queryElementToString(q: QueryElement): String =
       q match {
-        case QueryElement.FixedQuery(key, values) =>
+        case QueryElement.FixedQuery(key, values, _) =>
           if (values.nonEmpty) values.map(v => s"$key=$v").mkString("&") else key
-        case QueryElement.WildcardValueQuery(key) => s"$key=*"
-        case QueryElement.WildcardQuery           => "*"
+        case QueryElement.WildcardValueQuery(key, _) => s"$key=*"
+        case QueryElement.WildcardQuery              => "*"
       }
     Encoder.encodeString.contramap(r =>
       List(r.paths.map(pathElementToString).mkString("/"), r.query.queries.map(queryElementToString).mkString("&"))

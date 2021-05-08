@@ -7,7 +7,7 @@ import cats.implicits._
 
 case class StubsRepositoryImpl(
     paths: IoMap[PathElement, StubsRepositoryImpl],
-    queries: IoMap[RequestQuery, IoMap[MethodValue, NonEmptyList[Response]]]
+    queries: IoMap[QueryStub, IoMap[MethodValue, NonEmptyList[Response]]]
 ) extends StubRepository {
   def put(request: RequestStub, responses: NonEmptyList[Response]): IO[Unit] = {
     val pathParts = request.url.paths
@@ -30,7 +30,7 @@ case class StubsRepositoryImpl(
           .orElse(multiWildcardPath(request))
           .value
       case Nil =>
-        OptionT(queries.findFirst { case (rq, _) => rq.matches(request.queries) })
+        OptionT(queries.collectFirst { case (rq, r) if rq.matches(request.queries) => r })
           .flatMap(m =>
             getDirectMethod(request, m)
               .orElse(getWildcardMethod(m))
@@ -60,12 +60,12 @@ case class StubsRepositoryImpl(
     }
   }
 
-  private def directPath(request: Request, head: PathElement.Fixed, next: List[PathElement.Fixed]) = {
-    OptionT(paths.get(head))
+  private def directPath(request: Request, head: RequestPath, next: List[RequestPath]) = {
+    OptionT(paths.collectFirst { case (PathElement.Fixed(path), r) if path == head.path => r })
       .flatMapF(_.get(request.copy(paths = next)))
   }
 
-  private def wildcardPath(request: Request, next: List[PathElement.Fixed]) = {
+  private def wildcardPath(request: Request, next: List[RequestPath]) = {
     OptionT(paths.get(PathElement.Wildcard)).flatMapF(_.get(request.copy(paths = next)))
   }
 

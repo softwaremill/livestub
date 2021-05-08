@@ -16,7 +16,12 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Any]) {
       uri,
       RequestStub(
         req.method,
-        RequestPathAndQuery(req.paths, RequestQuery(ListSet.from(req.queries)))
+        RequestPathAndQuery(
+          req.paths.map(rp => PathElement.Fixed(rp.path)),
+          QueryStub(
+            ListSet.from(req.queries.map(rq => QueryElement.FixedQuery(rq.key, rq.values, isRequired = true)))
+          )
+        )
       )
     )
   }

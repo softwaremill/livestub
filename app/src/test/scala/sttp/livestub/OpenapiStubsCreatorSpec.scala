@@ -4,7 +4,16 @@ import com.softwaremill.tagging.Tagger
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.livestub.OpenapiStubsCreatorSpec.{CategoryComponent, PetComponent, TagComponent}
-import sttp.livestub.api.{MethodValue, RequestStub, Response}
+import sttp.livestub.api.{
+  MethodValue,
+  PathElement,
+  QueryElement,
+  QueryStub,
+  RequestPathAndQuery,
+  RequestQuery,
+  RequestStub,
+  Response
+}
 import sttp.livestub.openapi.OpenapiModels.ResponseStatusCode.Fixed
 import sttp.livestub.openapi.OpenapiModels.{
   OpenapiParameter,
@@ -25,6 +34,8 @@ import io.circe._
 import io.circe.parser._
 import org.scalatest.EitherValues
 import sttp.model.{MediaType, Method, StatusCode}
+
+import scala.collection.immutable.ListSet
 
 class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValues {
   val creator = new OpenapiStubsCreator(
@@ -96,6 +107,76 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
       )
     )
   }
+
+  it should "convert /pet/findByTags to request stub with body" in {
+    val paths = List(
+      OpenapiPath(
+        "/pet/findByTags",
+        List(
+          OpenapiPathMethod(
+            Method.GET,
+            List(
+              OpenapiParameter(
+                "tags",
+                OpenapiParamType.Query,
+                Some(false),
+                None,
+                OpenapiSchemaString(nullable = false, None)
+              )
+            ),
+            List(
+              OpenapiResponse(
+                Fixed(StatusCode.Ok),
+                "successful operation",
+                List(
+                  OpenapiResponseContent(
+                    MediaType.ApplicationJson,
+                    OpenapiSchemaArray(OpenapiSchemaRef("#/components/schemas/Pet"), nullable = false)
+                  )
+                )
+              ),
+              OpenapiResponse(Fixed(StatusCode.BadRequest), "Invalid tags value", List())
+            ),
+            None,
+            Some("Finds Pets by tags")
+          )
+        )
+      )
+    )
+    val generatedBody: Json = parse("""
+    [{
+    "name" : "doggie",
+    "tags" : [
+      {
+        "id" : -7216359497931550918,
+        "name" : "tag1"
+      }
+    ],
+    "photoUrls" : [
+      "http://random-photo-url.com"
+    ],
+    "id" : -3581075550420886390,
+    "status" : "available",
+    "category" : {
+      "id" : -2298228485105199876,
+      "name" : "Dogs"
+    }
+  }]""").value
+    creator(paths) shouldBe List(
+      RequestStub(
+        MethodValue.FixedMethod(Method.GET),
+        RequestPathAndQuery(
+          List(PathElement.Fixed("pet"), PathElement.Fixed("findByTags")),
+          QueryStub(ListSet(QueryElement.WildcardValueQuery("tags", isRequired = false)))
+        )
+      ) -> Response(
+        Some(generatedBody),
+        StatusCode.Ok,
+        List.empty
+      )
+    )
+  }
+
 }
 object OpenapiStubsCreatorSpec {
   val PetComponent: (String, OpenapiSchemaObject) = "Pet" -> OpenapiSchemaObject(

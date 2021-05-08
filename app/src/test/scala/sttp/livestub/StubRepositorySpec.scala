@@ -8,6 +8,8 @@ import org.scalatest.matchers.should.Matchers
 import sttp.livestub.api._
 import sttp.model.{Method, StatusCode}
 
+import scala.collection.immutable.ListSet
+
 class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
 
   "StubRepositorySpec" should "return response for single fragment path" in {
@@ -237,6 +239,26 @@ class StubRepositorySpec extends AnyFlatSpec with Matchers with OptionValues {
       .unsafeRunSync()
 
     repository.get(Request(Method.GET, "/admin?p=1&p=2&q=3")).unsafeRunSync().value shouldBe response
+  }
+
+  it should "support optional wildcard query" in {
+    val repository = StubsRepositoryImpl()
+    val response = Response.withJsonBody(Json.fromString("OK"), StatusCode.Ok)
+    repository
+      .put(
+        RequestStub(
+          MethodValue.FixedMethod(Method.GET),
+          RequestPathAndQuery(
+            List(PathElement.Fixed("admin")),
+            QueryStub(ListSet(QueryElement.WildcardValueQuery("p", isRequired = false)))
+          )
+        ),
+        NonEmptyList.one(response)
+      )
+      .unsafeRunSync()
+
+    repository.get(Request(Method.GET, "/admin?p=1")).unsafeRunSync().value shouldBe response
+    repository.get(Request(Method.GET, "/admin")).unsafeRunSync().value shouldBe response
   }
 
   it should "cycle through responses" in {

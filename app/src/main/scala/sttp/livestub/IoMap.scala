@@ -31,8 +31,8 @@ class IoMap[K, V] {
     }
   }
 
-  def findFirst(f: (K, V) => Boolean): IO[Option[V]] = {
-    IO.delay(map.asScala.collectFirst { case (k, v) if f(k, v) => v })
+  def collectFirst[R](f: PartialFunction[(K, V), R]): IO[Option[R]] = {
+    IO.delay(map.asScala.collectFirst(f))
   }
 
   override def toString: String = map.asScala.toString()
