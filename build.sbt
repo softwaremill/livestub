@@ -48,10 +48,11 @@ lazy val commonSettings: Seq[Def.Setting[_]] = commonSmlBuildSettings ++ ossPubl
     )
   ),
   updateDocs := Def.taskDyn {
-    val files1 = UpdateVersionInDocs(sLog.value, organization.value, version.value)
+    val files1 =
+      UpdateVersionInDocs(sLog.value, organization.value, version.value, List(file("docs-sources") / "README.md"))
     Def.task {
       (docs / mdoc).toTask("").value
-      files1 ++ Seq(file("generated-doc/out"))
+      files1 ++ Seq(file("generated-docs"), file("README.md"))
     }
   }.value
 )
