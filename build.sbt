@@ -93,9 +93,10 @@ lazy val sdk: Project = (project in file("sdk"))
   .settings(
     name := "livestub-sdk",
     libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion,
+      "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
-      "org.scalatest" %% "scalatest" % "3.2.3" % Test
+      "org.scalatest" %% "scalatest" % "3.2.3" % Test,
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test
     )
   )
   .dependsOn(api)
@@ -103,15 +104,17 @@ lazy val sdk: Project = (project in file("sdk"))
 lazy val docs = project
   .in(file("generated-docs")) // important: it must not be docs/
   .settings(commonSettings)
-  .settings(publishArtifact := false, name := "docs")
   .dependsOn(sdk)
   .enablePlugins(MdocPlugin)
   .settings(
+    publishArtifact := false,
+    name := "docs",
     mdocIn := file("docs-sources"),
     moduleName := "livestub-docs",
     mdocVariables := Map(
       "VERSION" -> version.value
     ),
+    libraryDependencies += "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion,
     mdocOut := file(".")
   )
 
