@@ -1,7 +1,7 @@
 package sttp.livestub
 
 import cats.data.NonEmptyList
-import cats.effect.{ContextShift, ExitCode, IO, Resource, Timer}
+import cats.effect.{ContextShift, IO, Resource, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Json
@@ -23,8 +23,22 @@ import scala.concurrent.ExecutionContext
 
 class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubRepositoryDecorator) extends FLogger {
 
-  def run(implicit ec: ExecutionContext, contextShift: ContextShift[IO], timer: Timer[IO]): IO[ExitCode] =
-    app.use(_ => IO.never).as(ExitCode.Success)
+  def resource(implicit
+      ec: ExecutionContext,
+      contextShift: ContextShift[IO],
+      timer: Timer[IO]
+  ): Resource[IO, Unit] =
+    BlazeServerBuilder[IO](ec)
+      .bindHttp(port, "0.0.0.0")
+      .withHttpApp(
+        Router[IO](
+          "/__admin" -> docsRoutes.routes[IO],
+          "/" -> Http4sServerInterpreter
+            .toRoutes[IO](endpoints)
+        ).orNotFound
+      )
+      .resource
+      .void
 
   val setupEndpoint: ServerEndpoint[StubEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
     LiveStubApi.setupEndpoint
@@ -82,23 +96,6 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubReposit
       IO.unit
     }
 
-  private def app(implicit
-      ec: ExecutionContext,
-      contextShift: ContextShift[IO],
-      timer: Timer[IO]
-  ): Resource[IO, Unit] =
-    BlazeServerBuilder[IO](ec)
-      .bindHttp(port, "0.0.0.0")
-      .withHttpApp(
-        Router[IO](
-          "/__admin" -> docsRoutes.routes[IO],
-          "/" -> Http4sServerInterpreter
-            .toRoutes[IO](endpoints)
-        ).orNotFound
-      )
-      .resource
-      .void
-
   private val docsRoutes: SwaggerHttp4s = {
     val openapi = OpenAPIDocsInterpreter
       .serverEndpointsToOpenAPI(endpoints, "Trading-Offering", "1.0")
@@ -109,9 +106,27 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubReposit
 }
 
 object LiveStubServer extends FLogger {
-  def apply(port: Int, quiet: Boolean, openapiSpec: Option[OpenapiDocument], seed: Option[Seed]): IO[LiveStubServer] = {
+
+  case class Config(
+      port: Int,
+      quiet: Boolean = false,
+      openapiSpec: Option[OpenapiDocument] = None,
+      seed: Option[Seed] = None
+  )
+
+  def resource(config: Config)(implicit
+      ec: ExecutionContext,
+      contextShift: ContextShift[IO],
+      timer: Timer[IO]
+  ): Resource[IO, Unit] = {
+    Resource
+      .eval(create(config))
+      .flatMap(_.resource)
+  }
+
+  private def create(config: Config): IO[LiveStubServer] = {
     val repository = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
-    openapiSpecToRequestResponseStub(openapiSpec, seed)
+    openapiSpecToRequestResponseStub(config.openapiSpec, config.seed)
       .traverse { case (request, response) =>
         Logger[IO].info(s"Stubbing $request with response $response") >>
           repository.put(
@@ -120,7 +135,7 @@ object LiveStubServer extends FLogger {
           )
       }
       .as(repository)
-      .map(r => new LiveStubServer(port, quiet, r))
+      .map(r => new LiveStubServer(config.port, config.quiet, r))
   }
 
   private def openapiSpecToRequestResponseStub(openapiSpec: Option[OpenapiDocument], seed: Option[Seed]) = {

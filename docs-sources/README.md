@@ -20,6 +20,21 @@ With livestub you can easly setup http server that behaves exactly as you would 
 
     `docker run -p 7070:7070 softwaremill/sttp.livestub`
 
+- **code**
+
+```scala mdoc:invisible
+import cats.effect._
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits._
+implicit val cs = IO.contextShift(ExecutionContext.global)
+implicit val timer = IO.timer(ExecutionContext.global)
+```
+```scala mdoc:compile-only
+    import sttp.livestub.LiveStubServer
+    import sttp.livestub.LiveStubServer.Config
+    LiveStubServer.resource(Config(port = 7070))
+```
+
 ### stub
 ```bash
 curl -X POST 'localhost:7070/__set' \
@@ -87,21 +102,16 @@ curl -X POST 'localhost:7070/__set_many' \
 libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.15"
 ```
 
-Given that very self-explanatory bootstrap:
+Given a bunch of imports
 ```scala mdoc:silent
-import cats.effect._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.asynchttpclient._
 import sttp.client3.SttpBackend
-import scala.concurrent._
 import sttp.livestub.sdk._
 import sttp.livestub.api._
 import sttp.client3.{Response => _, _}
 import sttp.model._
 import io.circe.Json
-
-implicit val cs = IO.contextShift(ExecutionContext.global)
-implicit val timer = IO.timer(ExecutionContext.global)
 ```
 
 you can stub an arbitrary request:

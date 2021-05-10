@@ -101,10 +101,14 @@ lazy val sdk: Project = (project in file("sdk"))
   )
   .dependsOn(api)
 
+val compileDocumentation: TaskKey[Unit] = taskKey[Unit]("Compiles documentation throwing away its output")
+compileDocumentation := {
+  (docs / mdoc).toTask(" --out target/generated-doc").value
+}
+
 lazy val docs = project
   .in(file("generated-docs")) // important: it must not be docs/
   .settings(commonSettings)
-  .dependsOn(sdk)
   .enablePlugins(MdocPlugin)
   .settings(
     publishArtifact := false,
@@ -117,6 +121,7 @@ lazy val docs = project
     libraryDependencies += "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion,
     mdocOut := file(".")
   )
+  .dependsOn(sdk, app)
 
 lazy val openapi = project
   .in(file("openapi"))
