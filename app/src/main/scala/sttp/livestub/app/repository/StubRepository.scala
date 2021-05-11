@@ -4,7 +4,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 import sttp.livestub.api._
-import sttp.livestub.app.matchers.{MethodMatcher, PathElementMatcher, QueryElementMatcher}
+import sttp.livestub.app.matchers.{MatchResult, MethodMatcher, PathElementMatcher, QueryElementMatcher}
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong

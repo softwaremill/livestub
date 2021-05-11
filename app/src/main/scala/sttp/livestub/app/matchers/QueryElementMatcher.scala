@@ -1,6 +1,6 @@
 package sttp.livestub.app.matchers
 
-import sttp.livestub.api.{MatchResult, QueryElement, RequestQuery}
+import sttp.livestub.api.{QueryElement, RequestQuery}
 
 import scala.collection.immutable.ListSet
 

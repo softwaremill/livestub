@@ -1,6 +1,6 @@
 package sttp.livestub.app.matchers
 
-import sttp.livestub.api.{MatchResult, PathElement, RequestPath}
+import sttp.livestub.api.{PathElement, RequestPath}
 
 private[app] object PathElementMatcher {
   def matches(paths: List[RequestPath], stubs: List[PathElement]): MatchResult = {

@@ -1,4 +1,4 @@
-package sttp.livestub.api
+package sttp.livestub.app.matchers
 
 sealed trait MatchResult {
   def combine(other: MatchResult): MatchResult

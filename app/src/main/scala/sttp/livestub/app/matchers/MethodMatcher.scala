@@ -1,6 +1,6 @@
 package sttp.livestub.app.matchers
 
-import sttp.livestub.api.{MatchResult, MethodStub}
+import sttp.livestub.api.MethodStub
 import sttp.model.Method
 
 private[app] object MethodMatcher {
