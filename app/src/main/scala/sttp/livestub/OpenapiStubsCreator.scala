@@ -3,7 +3,7 @@ package sttp.livestub
 import cats.syntax.all._
 import com.typesafe.scalalogging.StrictLogging
 import sttp.livestub.api.QueryElement.WildcardValueQuery
-import sttp.livestub.api.{MethodValue, QueryElement, RequestPathAndQuery, QueryStub, RequestStub, Response}
+import sttp.livestub.api.{MethodStub, QueryElement, RequestPathAndQuery, QueryStub, RequestStub, Response}
 import sttp.livestub.openapi.OpenapiModels.{OpenapiPath, OpenapiResponseContent, ResponseStatusCode}
 import sttp.livestub.openapi.OpenapiParamType
 import sttp.model.{MediaType, StatusCode}
@@ -18,10 +18,10 @@ class OpenapiStubsCreator(generator: RandomValueGenerator) extends StrictLogging
       path.methods.flatMap { method =>
         method.responses.headOption.map { firstResponse =>
           val requestStub = RequestStub(
-            MethodValue.FixedMethod(method.methodType),
+            MethodStub.FixedMethod(method.methodType),
             RequestPathAndQuery
               .fromString(path.url.replaceAll("\\{\\w+\\}", "*"))
-              .copy(query =
+              .copy(queryStub =
                 QueryStub(
                   ListSet(
                     method.parameters

@@ -1,39 +1,25 @@
 package sttp.livestub
 
-import java.util.concurrent.ConcurrentHashMap
-
 import cats.effect.IO
-import cats.implicits._
+import cats.effect.concurrent.Ref
 
-import scala.jdk.CollectionConverters._
-
-class IoMap[K, V] {
-  private val map = new ConcurrentHashMap[K, V]()
+class IoMap[K, V](ref: Ref[IO, Map[K, V]]) {
 
   def put(k: K, v: V): IO[Unit] = {
-    IO.delay(map.put(k, v))
+    ref.update(m => m + (k -> v))
   }
 
   def get(k: K): IO[Option[V]] = {
-    IO.delay(Option(map.get(k)))
+    ref.get.map(_.get(k))
   }
 
   def clear(): IO[Unit] = {
-    IO.delay(map.clear())
+    ref.set(Map())
   }
 
-  def getOrPut(k: K, v: => V): IO[V] = {
-    get(k).flatMap {
-      case Some(value) => value.pure[IO]
-      case None =>
-        val v1 = v // materialize lazy value
-        put(k, v1).as(v1)
-    }
+  def collect[R](f: PartialFunction[(K, V), R]): IO[List[R]] = {
+    ref.get.map(m => m.collect(f).toList)
   }
 
-  def collectFirst[R](f: PartialFunction[(K, V), R]): IO[Option[R]] = {
-    IO.delay(map.asScala.collectFirst(f))
-  }
-
-  override def toString: String = map.asScala.toString()
+  def getAll: IO[Map[K, V]] = ref.get
 }

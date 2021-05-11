@@ -26,7 +26,7 @@ object LiveStubApi extends LiveStubTapirSupport with JsonSupport with TapirCodec
       .in(
         (extractFromRequest(_.method) and paths and queryParams)
           .map(s => Request(s._1, s._2, s._3.toMultiSeq))(r =>
-            (r.method.method, r.paths.map(_.path), QueryParams.fromMultiSeq(r.queries.map(q => q.key -> q.values)))
+            (r.method, r.paths.map(_.path), QueryParams.fromMultiSeq(r.queries.map(q => q.key -> q.values)))
           )
       )
       .out(statusCode and jsonBody[Option[Json]] and headers)
@@ -38,7 +38,9 @@ object LiveStubApi extends LiveStubTapirSupport with JsonSupport with TapirCodec
     endpoint.get.in("__routes").out(jsonBody[StubbedRoutesResponse])
 }
 
-case class StubbedRoutesResponse(routes: List[StubEndpointRequest])
+case class StubbedRoutesResponse(routes: List[StubbedRoutesSingleEndpoint])
+case class StubbedRoutesSingleEndpoint(`when`: RequestStub, `then`: NonEmptyList[Response])
+
 case class StubEndpointRequest(`when`: RequestStub, `then`: Response)
 case class StubManyEndpointRequest(`when`: RequestStub, `then`: NonEmptyList[Response])
 case class StubEndpointResponse()

@@ -21,7 +21,7 @@ import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
 import scala.concurrent.ExecutionContext
 
-class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubRepositoryDecorator) extends FLogger {
+class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) extends FLogger {
 
   def resource(implicit
       ec: ExecutionContext,
@@ -78,9 +78,12 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubReposit
 
   val routesEndpoint: ServerEndpoint[Unit, Unit, StubbedRoutesResponse, Any, IO] =
     LiveStubApi.routesEndpoint.serverLogic { _ =>
-      stubbedCalls
-        .getAll()
-        .map(list => StubbedRoutesResponse(list.map(i => StubEndpointRequest(i._1, i._2.head))).asRight[Unit])
+      stubbedCalls.getAll
+        .map(list =>
+          StubbedRoutesResponse(list.map { case (reqStub, responses) =>
+            StubbedRoutesSingleEndpoint(reqStub, responses)
+          }).asRight[Unit]
+        )
     }
 
   val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Any, IO] =
@@ -125,16 +128,17 @@ object LiveStubServer extends FLogger {
   }
 
   private def create(config: Config): IO[LiveStubServer] = {
-    val repository = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
-    openapiSpecToRequestResponseStub(config.openapiSpec, config.seed)
-      .traverse { case (request, response) =>
-        Logger[IO].info(s"Stubbing $request with response $response") >>
-          repository.put(
-            request,
-            NonEmptyList.one(response)
-          )
+    StubRepository()
+      .flatTap { repository =>
+        openapiSpecToRequestResponseStub(config.openapiSpec, config.seed)
+          .traverse { case (request, response) =>
+            Logger[IO].info(s"Stubbing $request with response $response") >>
+              repository.put(
+                request,
+                NonEmptyList.one(response)
+              )
+          }
       }
-      .as(repository)
       .map(r => new LiveStubServer(config.port, config.quiet, r))
   }
 

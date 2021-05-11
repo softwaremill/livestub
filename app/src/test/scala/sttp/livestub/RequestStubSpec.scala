@@ -5,11 +5,12 @@ import io.circe.Json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.livestub.api.{
-  MethodValue,
+  MethodStub,
   PathElement,
+  PathStub,
   QueryElement,
-  RequestPathAndQuery,
   QueryStub,
+  RequestPathAndQuery,
   RequestStub,
   Response,
   StubEndpointRequest,
@@ -18,20 +19,20 @@ import sttp.livestub.api.{
 
 import scala.collection.immutable.ListSet
 import sttp.livestub.api.LiveStubApi._
-import sttp.livestub.api.MethodValue.FixedMethod
+import sttp.livestub.api.MethodStub.FixedMethod
 import sttp.model.{Method, StatusCode}
 
 class RequestStubSpec extends AnyFlatSpec with Matchers {
 
   it should "parse path" in {
-    RequestStub(MethodValue.Wildcard, "/admin/status").url shouldBe RequestPathAndQuery(
-      List(PathElement.Fixed("admin"), PathElement.Fixed("status")),
+    RequestStub(MethodStub.Wildcard, "/admin/status").url shouldBe RequestPathAndQuery(
+      PathStub(List(PathElement.Fixed("admin"), PathElement.Fixed("status"))),
       QueryStub(ListSet.empty)
     )
   }
 
   it should "parse path with query" in {
-    RequestStub(MethodValue.Wildcard, "/admin/status?filter=true").url.query shouldBe QueryStub(
+    RequestStub(MethodStub.Wildcard, "/admin/status?filter=true").url.queryStub shouldBe QueryStub(
       ListSet.from(List(QueryElement.FixedQuery("filter", List("true"), isRequired = true)))
     )
   }

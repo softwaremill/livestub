@@ -15,9 +15,9 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Any]) {
     new OutgoingStubbing(
       uri,
       RequestStub(
-        req.method,
+        MethodStub.FixedMethod(req.method),
         RequestPathAndQuery(
-          req.paths.map(rp => PathElement.Fixed(rp.path)),
+          PathStub(req.paths.map(rp => PathElement.Fixed(rp.path))),
           QueryStub(
             ListSet.from(req.queries.map(rq => QueryElement.FixedQuery(rq.key, rq.values, isRequired = true)))
           )
@@ -30,7 +30,7 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Any]) {
     new OutgoingStubbing(
       uri,
       RequestStub(
-        endpoint.httpMethod.map(MethodValue.FixedMethod).getOrElse(MethodValue.Wildcard),
+        endpoint.httpMethod.map(MethodStub.FixedMethod).getOrElse(MethodStub.Wildcard),
         endpoint.renderPathTemplate((_, _) => "*", Some((_, _) => "*"), includeAuth = false)
       )
     )

@@ -11,13 +11,13 @@ trait JsonSupport extends AutoDerivation {
   implicit val statusCodeDecoder: Decoder[StatusCode] =
     Decoder.decodeInt.map(StatusCode.unsafeApply)
 
-  implicit val methodValueEncoder: Encoder[MethodValue] = Encoder.encodeString.contramap {
-    case MethodValue.FixedMethod(method) => method.method
-    case MethodValue.Wildcard            => "*"
+  implicit val methodValueEncoder: Encoder[MethodStub] = Encoder.encodeString.contramap {
+    case MethodStub.FixedMethod(method) => method.method
+    case MethodStub.Wildcard            => "*"
   }
-  implicit val methodValueDecoder: Decoder[MethodValue] = Decoder.decodeString.map {
-    case "*"   => MethodValue.Wildcard
-    case other => MethodValue.FixedMethod(Method.unsafeApply(other))
+  implicit val methodValueDecoder: Decoder[MethodStub] = Decoder.decodeString.map {
+    case "*"   => MethodStub.Wildcard
+    case other => MethodStub.FixedMethod(Method.unsafeApply(other))
   }
 
   implicit val requestPathAndQueryEncoder: Encoder[RequestPathAndQuery] = {
@@ -35,7 +35,10 @@ trait JsonSupport extends AutoDerivation {
         case QueryElement.WildcardQuery              => "*"
       }
     Encoder.encodeString.contramap(r =>
-      List(r.paths.map(pathElementToString).mkString("/"), r.query.queries.map(queryElementToString).mkString("&"))
+      List(
+        r.pathStub.stubs.map(pathElementToString).mkString("/"),
+        r.queryStub.queries.map(queryElementToString).mkString("&")
+      )
         .mkString("?")
     )
   }

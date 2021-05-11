@@ -3,7 +3,7 @@ package sttp.livestub.api
 import sttp.model.{Method, Uri}
 
 case class Request(
-    method: MethodValue.FixedMethod,
+    method: Method,
     paths: List[RequestPath],
     queries: List[RequestQuery]
 )
@@ -14,7 +14,7 @@ case class RequestQuery(key: String, values: Seq[String])
 object Request {
   def apply(method: Method, paths: Seq[String], queries: Seq[(String, Seq[String])]): Request = {
     new Request(
-      MethodValue.FixedMethod(method),
+      method,
       paths.map(RequestPath).toList,
       queries.map(s => RequestQuery(s._1, s._2)).toList
     )

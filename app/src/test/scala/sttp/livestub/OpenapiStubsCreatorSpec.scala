@@ -4,7 +4,16 @@ import com.softwaremill.tagging.Tagger
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.livestub.OpenapiStubsCreatorSpec.{CategoryComponent, PetComponent, TagComponent}
-import sttp.livestub.api.{MethodValue, PathElement, QueryElement, QueryStub, RequestPathAndQuery, RequestStub, Response}
+import sttp.livestub.api.{
+  MethodStub,
+  PathElement,
+  PathStub,
+  QueryElement,
+  QueryStub,
+  RequestPathAndQuery,
+  RequestStub,
+  Response
+}
 import sttp.livestub.openapi.OpenapiModels.ResponseStatusCode.Fixed
 import sttp.livestub.openapi.OpenapiModels.{
   OpenapiParameter,
@@ -91,7 +100,7 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
     }
   }]""").value
     creator(paths) shouldBe List(
-      RequestStub(MethodValue.FixedMethod(Method.GET), "/pet/findByStatus?status=*") -> Response(
+      RequestStub(MethodStub.FixedMethod(Method.GET), "/pet/findByStatus?status=*") -> Response(
         Some(generatedBody),
         StatusCode.Ok,
         List.empty
@@ -155,9 +164,9 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
   }]""").value
     creator(paths) shouldBe List(
       RequestStub(
-        MethodValue.FixedMethod(Method.GET),
+        MethodStub.FixedMethod(Method.GET),
         RequestPathAndQuery(
-          List(PathElement.Fixed("pet"), PathElement.Fixed("findByTags")),
+          PathStub(List(PathElement.Fixed("pet"), PathElement.Fixed("findByTags"))),
           QueryStub(ListSet(QueryElement.WildcardValueQuery("tags", isRequired = false)))
         )
       ) -> Response(
@@ -180,21 +189,21 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
               OpenapiParamType.Path,
               Some(true),
               Some("ID of pet that needs to be updated"),
-              OpenapiSchemaLong(false, None)
+              OpenapiSchemaLong(nullable = false, None)
             ),
             OpenapiParameter(
               "name",
               OpenapiParamType.Query,
               None,
               Some("Name of pet that needs to be updated"),
-              OpenapiSchemaString(false, None)
+              OpenapiSchemaString(nullable = false, None)
             ),
             OpenapiParameter(
               "status",
               OpenapiParamType.Query,
               None,
               Some("Status of pet that needs to be updated"),
-              OpenapiSchemaString(false, None)
+              OpenapiSchemaString(nullable = false, None)
             )
           ),
           List(OpenapiResponse(Fixed(StatusCode.MethodNotAllowed), "Invalid input", List())),
@@ -205,9 +214,9 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
     )
     creator(List(path)) shouldBe List(
       RequestStub(
-        MethodValue.FixedMethod(Method.POST),
+        MethodStub.FixedMethod(Method.POST),
         RequestPathAndQuery(
-          List(PathElement.Fixed("pet"), PathElement.Wildcard),
+          PathStub(List(PathElement.Fixed("pet"), PathElement.Wildcard)),
           QueryStub(
             ListSet(
               QueryElement.WildcardValueQuery("name", isRequired = false),
