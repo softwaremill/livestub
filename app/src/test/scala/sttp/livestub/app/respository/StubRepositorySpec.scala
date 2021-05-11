@@ -8,7 +8,7 @@ import org.scalatest.OptionValues
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.livestub.api._
-import sttp.livestub.app.repository.StubRepository
+import sttp.livestub.app.repository.{EndpointStub, StubRepository}
 import sttp.model.{Method, StatusCode}
 
 import scala.collection.immutable.ListSet
@@ -20,7 +20,10 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin"),
+          NonEmptyList.one(response)
+        )
       _ <- repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response)
     } yield ()
   }
@@ -30,7 +33,10 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin"),
+          NonEmptyList.one(response)
+        )
       _ <- (1 to 5).toList.traverse { _ =>
         repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response)
       }
@@ -49,7 +55,10 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin/docs"), NonEmptyList.one(response))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin/docs"),
+          NonEmptyList.one(response)
+        )
       _ <- repository.get(Request(Method.GET, "/admin/docs")).map(_.value shouldBe response)
     } yield ()
   }
@@ -60,9 +69,15 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin/docs"), NonEmptyList.one(response1))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin/docs"),
+          NonEmptyList.one(response1)
+        )
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response2))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin"),
+          NonEmptyList.one(response2)
+        )
       _ <- repository.get(Request(Method.GET, "/admin/docs")).map(_.value shouldBe response1)
       _ <- repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response2)
     } yield ()
@@ -73,7 +88,10 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/*"), NonEmptyList.one(response))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/*"),
+          NonEmptyList.one(response)
+        )
       _ <- repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response)
       _ <- repository.get(Request(Method.GET, "/docs")).map(_.value shouldBe response)
     } yield ()
@@ -85,9 +103,15 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin/*"), NonEmptyList.one(response1))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin/*"),
+          NonEmptyList.one(response1)
+        )
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin"), NonEmptyList.one(response2))
+        .put(
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin"),
+          NonEmptyList.one(response2)
+        )
       _ <- repository.get(Request(Method.GET, "/admin/docs")).map(_.value shouldBe response1)
       _ <- repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response2)
     } yield ()
@@ -98,7 +122,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.Wildcard, "/admin"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.Wildcard, "/admin"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.POST, "/admin")).map(_.value shouldBe response)
       _ <- repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response)
     } yield ()
@@ -109,7 +133,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.Wildcard, "/admin/*"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/admin/*"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.GET, "/admin/docs")).map(_.value shouldBe response)
       _ <- repository.get(Request(Method.GET, "/admin/docs/status")).map(_ shouldBe empty)
     } yield ()
@@ -120,7 +144,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.Wildcard, "/admin/**"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.Wildcard, "/admin/**"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.POST, "/admin/docs")).map(_.value shouldBe response)
       _ <- repository.get(Request(Method.GET, "/admin/docs/status")).map(_.value shouldBe response)
     } yield ()
@@ -132,9 +156,9 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/user/**"), NonEmptyList.one(response1))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/user/**"), NonEmptyList.one(response1))
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/user/list/1/status"), NonEmptyList.one(response2))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/user/list/1/status"), NonEmptyList.one(response2))
       _ <- repository.get(Request(Method.GET, "/user/list/2/name")).map(_.value shouldBe response1)
       _ <- repository.get(Request(Method.GET, "/user/list/1/name")).map(_.value shouldBe response1)
       _ <- repository.get(Request(Method.GET, "/user/list/1/status")).map(_.value shouldBe response2)
@@ -148,11 +172,11 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/user/**"), NonEmptyList.one(response1))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/user/**"), NonEmptyList.one(response1))
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/user/*/status"), NonEmptyList.one(response2))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/user/*/status"), NonEmptyList.one(response2))
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/user/4/status"), NonEmptyList.one(response3))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/user/4/status"), NonEmptyList.one(response3))
       _ <- repository.get(Request(Method.GET, "/user/1/name")).map(_.value shouldBe response1)
       _ <- repository.get(Request(Method.GET, "/user/accept")).map(_.value shouldBe response1)
       _ <- repository.get(Request(Method.GET, "/user/1/status/param1")).map(_.value shouldBe response1)
@@ -166,7 +190,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=true"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=true"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.GET, "/admin?filter=true")).map(_.value shouldBe response)
       _ <- repository.get(Request(Method.GET, "/admin?filter=false")).map(_ shouldBe empty)
     } yield ()
@@ -177,7 +201,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=*"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=*"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.GET, "/admin?filter=true")).map(_.value shouldBe response)
       _ <- repository.get(Request(Method.GET, "/admin?filter=false")).map(_.value shouldBe response)
     } yield ()
@@ -189,7 +213,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
       repository <- StubRepository()
       _ <- repository
         .put(
-          RequestStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=true&multi=false"),
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=true&multi=false"),
           NonEmptyList.one(response)
         )
       _ <- repository.get(Request(Method.GET, "/admin?filter=true&multi=false")).map(_.value shouldBe response)
@@ -203,7 +227,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
       repository <- StubRepository()
       _ <- repository
         .put(
-          RequestStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=true&multi=false"),
+          endpointStub(MethodStub.FixedMethod(Method.GET), "/admin?filter=true&multi=false"),
           NonEmptyList.one(response)
         )
       _ <- repository.get(Request(Method.GET, "/admin?multi=false&filter=true")).map(_.value shouldBe response)
@@ -216,7 +240,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin?p=1&p=2"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/admin?p=1&p=2"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.GET, "/admin?p=1&p=2")).map(_.value shouldBe response)
       _ <- repository.get(Request(Method.GET, "/admin?p=1&p=3")).map(_ shouldBe empty)
     } yield ()
@@ -227,7 +251,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin?p=*"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/admin?p=*"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.GET, "/admin?p=1&p=2")).map(_.value shouldBe response)
     } yield ()
   }
@@ -237,7 +261,7 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin?*"), NonEmptyList.one(response))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/admin?*"), NonEmptyList.one(response))
       _ <- repository.get(Request(Method.GET, "/admin?p=1&p=2&q=3")).map(_.value shouldBe response)
     } yield ()
   }
@@ -248,12 +272,10 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
       repository <- StubRepository()
       _ <- repository
         .put(
-          RequestStub(
+          EndpointStub(
             MethodStub.FixedMethod(Method.GET),
-            RequestPathAndQuery(
-              PathStub(List(PathElement.Fixed("admin"))),
-              QueryStub(ListSet(QueryElement.WildcardValueQuery("p", isRequired = false)))
-            )
+            List(PathElement.Fixed("admin")),
+            ListSet(QueryElement.WildcardValueQuery("p", isRequired = false))
           ),
           NonEmptyList.one(response)
         )
@@ -268,20 +290,19 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
       repository <- StubRepository()
       _ <- repository
         .put(
-          RequestStub(
+          EndpointStub(
             MethodStub.FixedMethod(Method.GET),
-            RequestPathAndQuery(PathStub(List(PathElement.Fixed("admin"))), QueryStub(ListSet()))
+            List(PathElement.Fixed("admin")),
+            ListSet()
           ),
           NonEmptyList.one(response)
         )
       _ <- repository
         .put(
-          RequestStub(
+          EndpointStub(
             MethodStub.FixedMethod(Method.POST),
-            RequestPathAndQuery(
-              PathStub(List(PathElement.Fixed("admin"))),
-              QueryStub(ListSet(QueryElement.WildcardValueQuery("p", isRequired = false)))
-            )
+            List(PathElement.Fixed("admin")),
+            ListSet(QueryElement.WildcardValueQuery("p", isRequired = false))
           ),
           NonEmptyList.one(response)
         )
@@ -296,11 +317,16 @@ class StubRepositorySpec extends AsyncFlatSpec with AsyncIOSpec with Matchers wi
     for {
       repository <- StubRepository()
       _ <- repository
-        .put(RequestStub(MethodStub.FixedMethod(Method.GET), "/admin"), NonEmptyList.of(response1, response2))
+        .put(endpointStub(MethodStub.FixedMethod(Method.GET), "/admin"), NonEmptyList.of(response1, response2))
       _ <- (1 to 5).toList.traverse { _ =>
         repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response1) >>
           repository.get(Request(Method.GET, "/admin")).map(_.value shouldBe response2)
       }
     } yield ()
+  }
+
+  private def endpointStub(method: MethodStub, url: String): EndpointStub = {
+    val pathAndQuery = RequestPathAndQuery.fromString(url)
+    EndpointStub(method, pathAndQuery.paths, pathAndQuery.queries)
   }
 }

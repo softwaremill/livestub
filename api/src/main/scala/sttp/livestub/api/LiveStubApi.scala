@@ -8,6 +8,9 @@ import sttp.tapir.generic.auto._
 import sttp.tapir.integ.cats.TapirCodecCats
 import sttp.tapir.json.circe._
 
+import java.util.UUID
+import scala.collection.immutable.ListSet
+
 object LiveStubApi extends LiveStubTapirSupport with JsonSupport with TapirCodecCats {
   val setupEndpoint: Endpoint[StubEndpointRequest, Unit, StubEndpointResponse, Any] =
     endpoint.post
@@ -38,9 +41,14 @@ object LiveStubApi extends LiveStubTapirSupport with JsonSupport with TapirCodec
     endpoint.get.in("__routes").out(jsonBody[StubbedRoutesResponse])
 }
 
-case class StubbedRoutesResponse(routes: List[StubbedRoutesSingleEndpoint])
-case class StubbedRoutesSingleEndpoint(`when`: RequestStub, `then`: NonEmptyList[Response])
+case class StubbedRoutesResponse(routes: List[StubEndpointResponse])
+case class RequestStubOut(
+    id: UUID,
+    methodStub: MethodStub,
+    pathStub: List[PathElement],
+    queryStub: ListSet[QueryElement]
+)
 
-case class StubEndpointRequest(`when`: RequestStub, `then`: Response)
-case class StubManyEndpointRequest(`when`: RequestStub, `then`: NonEmptyList[Response])
-case class StubEndpointResponse()
+case class StubEndpointRequest(`when`: RequestStubIn, `then`: Response)
+case class StubManyEndpointRequest(`when`: RequestStubIn, `then`: NonEmptyList[Response])
+case class StubEndpointResponse(`when`: RequestStubOut, `then`: NonEmptyList[Response])

@@ -10,19 +10,18 @@ import sttp.model.{Method, StatusCode}
 
 import scala.collection.immutable.ListSet
 
-class RequestStubSpec extends AnyFlatSpec with Matchers {
+class RequestStubInSpec extends AnyFlatSpec with Matchers {
 
   it should "parse path" in {
-    RequestStub(MethodStub.Wildcard, "/admin/status").url shouldBe RequestPathAndQuery(
-      PathStub(List(PathElement.Fixed("admin"), PathElement.Fixed("status"))),
-      QueryStub(ListSet.empty)
+    RequestStubIn(MethodStub.Wildcard, "/admin/status").url shouldBe RequestPathAndQuery(
+      List(PathElement.Fixed("admin"), PathElement.Fixed("status")),
+      ListSet.empty
     )
   }
 
   it should "parse path with query" in {
-    RequestStub(MethodStub.Wildcard, "/admin/status?filter=true").url.queryStub shouldBe QueryStub(
+    RequestStubIn(MethodStub.Wildcard, "/admin/status?filter=true").url.queries shouldBe
       ListSet.from(List(QueryElement.FixedQuery("filter", List("true"), isRequired = true)))
-    )
   }
 
   it should "parse" in {
@@ -32,7 +31,7 @@ class RequestStubSpec extends AnyFlatSpec with Matchers {
       """{"when":{"method":"GET", "url":"dogs/3/status?name=asd"}, "then": {"statusCode":200, "body":{"status": "unhappy"} }}"""
     ) shouldBe Right(
       StubEndpointRequest(
-        RequestStub(FixedMethod(Method.GET), "dogs/3/status?name=asd"),
+        RequestStubIn(FixedMethod(Method.GET), "dogs/3/status?name=asd"),
         Response(Some(Json.obj("status" -> Json.fromString("unhappy"))), StatusCode.Ok)
       )
     )
@@ -45,7 +44,7 @@ class RequestStubSpec extends AnyFlatSpec with Matchers {
       """{"when":{"method":"GET", "url":"dogs/3/status?name=asd"}, "then": [{"statusCode":200, "body":{"status": "unhappy"} }]}"""
     ) shouldBe Right(
       StubManyEndpointRequest(
-        RequestStub(FixedMethod(Method.GET), "dogs/3/status?name=asd"),
+        RequestStubIn(FixedMethod(Method.GET), "dogs/3/status?name=asd"),
         NonEmptyList.one(Response(Some(Json.obj("status" -> Json.fromString("unhappy"))), StatusCode.Ok))
       )
     )

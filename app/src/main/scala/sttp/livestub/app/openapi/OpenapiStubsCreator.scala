@@ -12,21 +12,19 @@ import scala.collection.immutable.ListSet
 class OpenapiStubsCreator(generator: RandomValueGenerator) extends StrictLogging {
   def apply(
       paths: List[OpenapiPath]
-  ): List[(RequestStub, Response)] = {
+  ): List[(RequestStubIn, Response)] = {
     paths.flatMap { path =>
       path.methods.flatMap { method =>
         method.responses.headOption.map { firstResponse =>
-          val requestStub = RequestStub(
+          val requestStub = RequestStubIn(
             MethodStub.FixedMethod(method.methodType),
             RequestPathAndQuery
               .fromString(path.url.replaceAll("\\{\\w+\\}", "*"))
-              .copy(queryStub =
-                QueryStub(
-                  ListSet(
-                    method.parameters
-                      .filter(p => p.in == OpenapiParamType.Query)
-                      .map(query => QueryElement.WildcardValueQuery(query.name, query.required.getOrElse(false))): _*
-                  )
+              .copy(queries =
+                ListSet(
+                  method.parameters
+                    .filter(p => p.in == OpenapiParamType.Query)
+                    .map(query => QueryElement.WildcardValueQuery(query.name, query.required.getOrElse(false))): _*
                 )
               )
           )

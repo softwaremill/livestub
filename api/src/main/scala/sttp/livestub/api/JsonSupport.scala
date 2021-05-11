@@ -36,8 +36,8 @@ trait JsonSupport extends AutoDerivation {
       }
     Encoder.encodeString.contramap(r =>
       List(
-        r.pathStub.stubs.map(pathElementToString).mkString("/"),
-        r.queryStub.queries.map(queryElementToString).mkString("&")
+        r.paths.map(pathElementToString).mkString("/"),
+        r.queries.map(queryElementToString).mkString("&")
       )
         .mkString("?")
     )

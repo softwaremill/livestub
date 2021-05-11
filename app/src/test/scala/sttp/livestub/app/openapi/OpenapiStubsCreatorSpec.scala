@@ -91,7 +91,7 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
     }
   }]""").value
     creator(paths) shouldBe List(
-      RequestStub(MethodStub.FixedMethod(Method.GET), "/pet/findByStatus?status=*") -> Response(
+      RequestStubIn(MethodStub.FixedMethod(Method.GET), "/pet/findByStatus?status=*") -> Response(
         Some(generatedBody),
         StatusCode.Ok,
         List.empty
@@ -154,11 +154,11 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
     }
   }]""").value
     creator(paths) shouldBe List(
-      RequestStub(
+      RequestStubIn(
         MethodStub.FixedMethod(Method.GET),
         RequestPathAndQuery(
-          PathStub(List(PathElement.Fixed("pet"), PathElement.Fixed("findByTags"))),
-          QueryStub(ListSet(QueryElement.WildcardValueQuery("tags", isRequired = false)))
+          List(PathElement.Fixed("pet"), PathElement.Fixed("findByTags")),
+          ListSet(QueryElement.WildcardValueQuery("tags", isRequired = false))
         )
       ) -> Response(
         Some(generatedBody),
@@ -204,15 +204,13 @@ class OpenapiStubsCreatorSpec extends AnyFlatSpec with Matchers with EitherValue
       )
     )
     creator(List(path)) shouldBe List(
-      RequestStub(
+      RequestStubIn(
         MethodStub.FixedMethod(Method.POST),
         RequestPathAndQuery(
-          PathStub(List(PathElement.Fixed("pet"), PathElement.Wildcard)),
-          QueryStub(
-            ListSet(
-              QueryElement.WildcardValueQuery("name", isRequired = false),
-              QueryElement.WildcardValueQuery("status", isRequired = false)
-            )
+          List(PathElement.Fixed("pet"), PathElement.Wildcard),
+          ListSet(
+            QueryElement.WildcardValueQuery("name", isRequired = false),
+            QueryElement.WildcardValueQuery("status", isRequired = false)
           )
         )
       ) -> Response(

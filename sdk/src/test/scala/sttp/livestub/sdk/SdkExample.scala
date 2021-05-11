@@ -6,7 +6,7 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3._
-import sttp.livestub.api.{MethodStub, RequestStub, Response}
+import sttp.livestub.api.{MethodStub, RequestStubIn, Response}
 import sttp.model.StatusCode
 import sttp.model.Header
 import sttp.tapir.Tapir
@@ -41,7 +41,7 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
     AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
       val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
       livestub
-        .when(RequestStub(MethodStub.Wildcard, "/user/*/status"))
+        .when(RequestStubIn(MethodStub.Wildcard, "/user/*/status"))
         .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
     }
   }

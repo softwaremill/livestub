@@ -1,16 +1,18 @@
-package sttp.livestub.api
+package sttp.livestub.app.matchers
+
+import sttp.livestub.api.{MatchResult, QueryElement, RequestQuery}
 
 import scala.collection.immutable.ListSet
 
-case class QueryStub(queries: ListSet[QueryElement]) {
-  def matches(`given`: List[RequestQuery]): MatchResult = {
-    if (queries.exists(_.isInstanceOf[QueryElement.WildcardQuery.type])) {
+private[app] object QueryElementMatcher {
+  def matches(`given`: List[RequestQuery], stubs: ListSet[QueryElement]): MatchResult = {
+    if (stubs.exists(_.isInstanceOf[QueryElement.WildcardQuery.type])) {
       MatchResult.MultiWildcardMatch
     } else {
-      val qs = queries.collect {
-        case QueryElement.WildcardValueQuery(key, isRequired) => key -> (isRequired, QueryMatchType.Wildcard)
+      val qs = stubs.collect {
+        case QueryElement.WildcardValueQuery(key, isRequired) => (key, (isRequired, QueryMatchType.Wildcard))
         case QueryElement.FixedQuery(key, values, isRequired) =>
-          key -> (isRequired, QueryMatchType.Fixed(values.toList))
+          (key, (isRequired, QueryMatchType.Fixed(values.toList)))
       }.toMap
       val gs = `given`.map(q => q.key -> q.values).toMap
 
@@ -38,28 +40,8 @@ case class QueryStub(queries: ListSet[QueryElement]) {
   }
 }
 
-sealed trait QueryMatchType
-object QueryMatchType {
+private sealed trait QueryMatchType
+private object QueryMatchType {
   case class Fixed(values: List[String]) extends QueryMatchType
   case object Wildcard extends QueryMatchType
-}
-
-object QueryStub {
-  def fromString(str: String): QueryStub = {
-    QueryStub(
-      ListSet.from(
-        str
-          .split('&')
-          .toList
-          .map(_.split('=').toList)
-          .groupBy(_.head)
-          .map { case (k, v) => k -> v.flatMap(_.drop(1)) }
-          .map {
-            case ("*", Nil)                => QueryElement.WildcardQuery
-            case (k, v) if v.contains("*") => QueryElement.WildcardValueQuery(k, isRequired = true)
-            case (k, v)                    => QueryElement.FixedQuery(k, v, isRequired = true)
-          }
-      )
-    )
-  }
 }
