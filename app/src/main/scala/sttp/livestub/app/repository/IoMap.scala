@@ -1,4 +1,4 @@
-package sttp.livestub
+package sttp.livestub.app.repository
 
 import cats.effect.IO
 import cats.effect.concurrent.Ref

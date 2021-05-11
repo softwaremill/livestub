@@ -30,8 +30,8 @@ implicit val cs = IO.contextShift(ExecutionContext.global)
 implicit val timer = IO.timer(ExecutionContext.global)
 ```
 ```scala mdoc:compile-only
-    import sttp.livestub.LiveStubServer
-    import sttp.livestub.LiveStubServer.Config
+    import sttp.livestub.app.LiveStubServer
+    import sttp.livestub.app.LiveStubServer.Config
     LiveStubServer.resource(Config(port = 7070))
 ```
 

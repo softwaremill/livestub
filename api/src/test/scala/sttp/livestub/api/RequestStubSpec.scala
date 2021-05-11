@@ -1,26 +1,14 @@
-package sttp.livestub
+package sttp.livestub.api
 
 import cats.data.NonEmptyList
 import io.circe.Json
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.livestub.api.{
-  MethodStub,
-  PathElement,
-  PathStub,
-  QueryElement,
-  QueryStub,
-  RequestPathAndQuery,
-  RequestStub,
-  Response,
-  StubEndpointRequest,
-  StubManyEndpointRequest
-}
-
-import scala.collection.immutable.ListSet
 import sttp.livestub.api.LiveStubApi._
 import sttp.livestub.api.MethodStub.FixedMethod
 import sttp.model.{Method, StatusCode}
+
+import scala.collection.immutable.ListSet
 
 class RequestStubSpec extends AnyFlatSpec with Matchers {
 

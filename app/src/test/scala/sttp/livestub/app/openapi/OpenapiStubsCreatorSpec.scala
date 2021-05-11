@@ -1,19 +1,13 @@
-package sttp.livestub
+package sttp.livestub.app.openapi
 
 import com.softwaremill.tagging.Tagger
+import io.circe._
+import io.circe.parser._
+import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import sttp.livestub.OpenapiStubsCreatorSpec.{CategoryComponent, PetComponent, TagComponent}
-import sttp.livestub.api.{
-  MethodStub,
-  PathElement,
-  PathStub,
-  QueryElement,
-  QueryStub,
-  RequestPathAndQuery,
-  RequestStub,
-  Response
-}
+import sttp.livestub.api._
+import sttp.livestub.app.openapi.OpenapiStubsCreatorSpec.{CategoryComponent, PetComponent, TagComponent}
 import sttp.livestub.openapi.OpenapiModels.ResponseStatusCode.Fixed
 import sttp.livestub.openapi.OpenapiModels.{
   OpenapiParameter,
@@ -30,9 +24,6 @@ import sttp.livestub.openapi.OpenapiSchemaType.{
   OpenapiSchemaRef,
   OpenapiSchemaString
 }
-import io.circe._
-import io.circe.parser._
-import org.scalatest.EitherValues
 import sttp.model.{MediaType, Method, StatusCode}
 
 import scala.collection.immutable.ListSet

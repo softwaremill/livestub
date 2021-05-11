@@ -1,4 +1,4 @@
-package sttp.livestub
+package sttp.livestub.app
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO, Resource, Timer}
@@ -8,8 +8,10 @@ import io.circe.Json
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
-import sttp.livestub.RandomValueGenerator.Seed
 import sttp.livestub.api._
+import sttp.livestub.app.openapi.RandomValueGenerator.Seed
+import sttp.livestub.app.openapi.{OpenapiStubsCreator, RandomValueGenerator}
+import sttp.livestub.app.repository.StubRepository
 import sttp.livestub.openapi.OpenapiModels.OpenapiDocument
 import sttp.model.{Header, StatusCode}
 import sttp.tapir.docs.openapi._

@@ -1,4 +1,4 @@
-package sttp.livestub
+package sttp.livestub.app.repository
 
 import cats.data.NonEmptyList
 import cats.effect.IO

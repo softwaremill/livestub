@@ -1,4 +1,4 @@
-package sttp.livestub
+package sttp.livestub.app.respository
 
 import cats.data.NonEmptyList
 import cats.effect.testing.scalatest.AsyncIOSpec
@@ -8,6 +8,7 @@ import org.scalatest.OptionValues
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.livestub.api._
+import sttp.livestub.app.repository.StubRepository
 import sttp.model.{Method, StatusCode}
 
 import scala.collection.immutable.ListSet

@@ -1,9 +1,8 @@
-package sttp.livestub
+package sttp.livestub.app.openapi
 
 import cats.syntax.all._
 import com.typesafe.scalalogging.StrictLogging
-import sttp.livestub.api.QueryElement.WildcardValueQuery
-import sttp.livestub.api.{MethodStub, QueryElement, RequestPathAndQuery, QueryStub, RequestStub, Response}
+import sttp.livestub.api._
 import sttp.livestub.openapi.OpenapiModels.{OpenapiPath, OpenapiResponseContent, ResponseStatusCode}
 import sttp.livestub.openapi.OpenapiParamType
 import sttp.model.{MediaType, StatusCode}

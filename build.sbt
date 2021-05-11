@@ -85,7 +85,8 @@ lazy val api: Project = (project in file("api"))
     name := "livestub-api",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion,
-      "com.softwaremill.sttp.tapir" %% "tapir-cats" % tapirVersion
+      "com.softwaremill.sttp.tapir" %% "tapir-cats" % tapirVersion,
+      "org.scalatest" %% "scalatest" % "3.2.3" % Test
     ) ++ jsonDependencies
   )
 

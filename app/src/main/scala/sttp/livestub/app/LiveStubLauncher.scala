@@ -1,17 +1,17 @@
-package sttp.livestub
+package sttp.livestub.app
 
-import cats.effect._
-import cats.implicits._
+import cats.effect.{ExitCode, IO, Resource}
+import cats.syntax.all._
 import com.monovore.decline.Opts
-import com.monovore.decline.effect._
+import com.monovore.decline.effect.CommandIOApp
 import com.softwaremill.tagging.Tagger
-import sttp.livestub.LiveStubServer.Config
-import sttp.livestub.RandomValueGenerator.SeedTag
+import sttp.livestub.app.LiveStubServer.Config
+import sttp.livestub.app.openapi.RandomValueGenerator.SeedTag
 import sttp.livestub.openapi.YamlParser
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.jdk.CollectionConverters.CollectionHasAsScala
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 object LiveStubLauncher
     extends CommandIOApp(name = "com.softwaremill.sttp.livestub:livestub-app_2.13", header = "Stub everything!") {
