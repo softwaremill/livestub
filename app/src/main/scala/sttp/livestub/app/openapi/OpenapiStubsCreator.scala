@@ -1,9 +1,8 @@
-package sttp.livestub
+package sttp.livestub.app.openapi
 
 import cats.syntax.all._
 import com.typesafe.scalalogging.StrictLogging
-import sttp.livestub.api.QueryElement.WildcardValueQuery
-import sttp.livestub.api.{MethodValue, QueryElement, RequestPathAndQuery, QueryStub, RequestStub, Response}
+import sttp.livestub.api._
 import sttp.livestub.openapi.OpenapiModels.{OpenapiPath, OpenapiResponseContent, ResponseStatusCode}
 import sttp.livestub.openapi.OpenapiParamType
 import sttp.model.{MediaType, StatusCode}
@@ -13,21 +12,19 @@ import scala.collection.immutable.ListSet
 class OpenapiStubsCreator(generator: RandomValueGenerator) extends StrictLogging {
   def apply(
       paths: List[OpenapiPath]
-  ): List[(RequestStub, Response)] = {
+  ): List[(RequestStubIn, Response)] = {
     paths.flatMap { path =>
       path.methods.flatMap { method =>
         method.responses.headOption.map { firstResponse =>
-          val requestStub = RequestStub(
-            MethodValue.FixedMethod(method.methodType),
+          val requestStub = RequestStubIn(
+            MethodStub.FixedMethod(method.methodType),
             RequestPathAndQuery
               .fromString(path.url.replaceAll("\\{\\w+\\}", "*"))
-              .copy(query =
-                QueryStub(
-                  ListSet(
-                    method.parameters
-                      .filter(p => p.in == OpenapiParamType.Query)
-                      .map(query => QueryElement.WildcardValueQuery(query.name, query.required.getOrElse(false))): _*
-                  )
+              .copy(queries =
+                ListSet(
+                  method.parameters
+                    .filter(p => p.in == OpenapiParamType.Query)
+                    .map(query => QueryElement.WildcardValueQuery(query.name, query.required.getOrElse(false))): _*
                 )
               )
           )

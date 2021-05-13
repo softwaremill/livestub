@@ -1,4 +1,4 @@
-package sttp.livestub
+package sttp.livestub.app
 
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO, Resource, Timer}
@@ -8,8 +8,11 @@ import io.circe.Json
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
-import sttp.livestub.RandomValueGenerator.Seed
 import sttp.livestub.api._
+import sttp.livestub.app.LiveStubServer.{RichEndpointStub, RichRequestStub}
+import sttp.livestub.app.openapi.RandomValueGenerator.Seed
+import sttp.livestub.app.openapi.{OpenapiStubsCreator, RandomValueGenerator}
+import sttp.livestub.app.repository.{EndpointStub, StubRepository}
 import sttp.livestub.openapi.OpenapiModels.OpenapiDocument
 import sttp.model.{Header, StatusCode}
 import sttp.tapir.docs.openapi._
@@ -21,7 +24,7 @@ import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
 import scala.concurrent.ExecutionContext
 
-class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubRepositoryDecorator) extends FLogger {
+class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) extends FLogger {
 
   def resource(implicit
       ec: ExecutionContext,
@@ -43,19 +46,22 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubReposit
   val setupEndpoint: ServerEndpoint[StubEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
     LiveStubApi.setupEndpoint
       .serverLogic { req =>
+        val endpointStub = req.`when`.toEndpointStub
+        val thenList = NonEmptyList.one(req.`then`)
         log(s"Got mocking request $req") >>
           stubbedCalls
-            .put(req.`when`, NonEmptyList.one(req.`then`))
-            .map(_ => StubEndpointResponse().asRight[Unit])
+            .put(endpointStub, thenList)
+            .map(_ => StubEndpointResponse(endpointStub.toStubOut, thenList).asRight[Unit])
       }
 
   val setupManyEndpoint: ServerEndpoint[StubManyEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
     LiveStubApi.setupManyEndpoint
       .serverLogic { req =>
+        val endpointStub = req.`when`.toEndpointStub
         log(s"Got mocking request $req") >>
           stubbedCalls
-            .put(req.`when`, req.`then`)
-            .map(_ => StubEndpointResponse().asRight[Unit])
+            .put(endpointStub, req.`then`)
+            .map(_ => StubEndpointResponse(endpointStub.toStubOut, req.`then`).asRight[Unit])
       }
 
   val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Option[Json], List[Header]), Any, IO] =
@@ -78,9 +84,12 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: ListingStubReposit
 
   val routesEndpoint: ServerEndpoint[Unit, Unit, StubbedRoutesResponse, Any, IO] =
     LiveStubApi.routesEndpoint.serverLogic { _ =>
-      stubbedCalls
-        .getAll()
-        .map(list => StubbedRoutesResponse(list.map(i => StubEndpointRequest(i._1, i._2.head))).asRight[Unit])
+      stubbedCalls.getAll
+        .map(list =>
+          StubbedRoutesResponse(list.map { case (endpointStub, responses) =>
+            StubEndpointResponse(endpointStub.toStubOut, responses)
+          }).asRight[Unit]
+        )
     }
 
   val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Any, IO] =
@@ -125,16 +134,17 @@ object LiveStubServer extends FLogger {
   }
 
   private def create(config: Config): IO[LiveStubServer] = {
-    val repository = new ListingStubRepositoryDecorator(StubsRepositoryImpl())
-    openapiSpecToRequestResponseStub(config.openapiSpec, config.seed)
-      .traverse { case (request, response) =>
-        Logger[IO].info(s"Stubbing $request with response $response") >>
-          repository.put(
-            request,
-            NonEmptyList.one(response)
-          )
+    StubRepository()
+      .flatTap { repository =>
+        openapiSpecToRequestResponseStub(config.openapiSpec, config.seed)
+          .traverse { case (request, response) =>
+            Logger[IO].info(s"Stubbing $request with response $response") >>
+              repository.put(
+                request.toEndpointStub,
+                NonEmptyList.one(response)
+              )
+          }
       }
-      .as(repository)
       .map(r => new LiveStubServer(config.port, config.quiet, r))
   }
 
@@ -144,6 +154,16 @@ object LiveStubServer extends FLogger {
         new OpenapiStubsCreator(new RandomValueGenerator(spec.components.schemas, seed))
           .apply(spec.paths)
       case None => List.empty
+    }
+  }
+  implicit class RichRequestStub(request: RequestStubIn) {
+    def toEndpointStub: EndpointStub = {
+      EndpointStub(request.method, request.url.paths, request.url.queries)
+    }
+  }
+  implicit class RichEndpointStub(endpointStub: EndpointStub) {
+    def toStubOut: RequestStubOut = {
+      RequestStubOut(endpointStub.id, endpointStub.methodStub, endpointStub.pathStub, endpointStub.queryStub)
     }
   }
 }

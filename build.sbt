@@ -73,7 +73,8 @@ lazy val app: Project = (project in file("app"))
       "com.monovore" %% "decline-effect" % declineVersion,
       "com.softwaremill.common" %% "tagging" % "2.3.0",
       "org.typelevel" %% "cats-core" % "2.6.0",
-      "org.scalatest" %% "scalatest" % "3.2.8" % Test
+      "org.scalatest" %% "scalatest" % "3.2.8" % Test,
+      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.3" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
   .dependsOn(api, openapi)
@@ -84,7 +85,8 @@ lazy val api: Project = (project in file("api"))
     name := "livestub-api",
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion,
-      "com.softwaremill.sttp.tapir" %% "tapir-cats" % tapirVersion
+      "com.softwaremill.sttp.tapir" %% "tapir-cats" % tapirVersion,
+      "org.scalatest" %% "scalatest" % "3.2.3" % Test
     ) ++ jsonDependencies
   )
 

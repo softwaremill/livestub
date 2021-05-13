@@ -1,19 +1,11 @@
 package sttp.livestub.api
 
-sealed trait PathElement {
-  def matches(requestPath: RequestPath): Boolean
-}
+sealed trait PathElement
 
 object PathElement {
-  case class Fixed(path: String) extends PathElement {
-    override def matches(requestPath: RequestPath): Boolean = requestPath.path == path
-  }
-  case object Wildcard extends PathElement {
-    override def matches(requestPath: RequestPath): Boolean = true
-  }
-  case object MultiWildcard extends PathElement {
-    override def matches(requestPath: RequestPath): Boolean = true
-  }
+  case class Fixed(path: String) extends PathElement
+  case object Wildcard extends PathElement
+  case object MultiWildcard extends PathElement
 
   def fromString(strPath: String): PathElement = {
     strPath match {

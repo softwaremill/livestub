@@ -14,13 +14,11 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Any]) {
     val req = Request(sttpRequest.method, sttpRequest.uri.path, sttpRequest.uri.params.toMultiSeq)
     new OutgoingStubbing(
       uri,
-      RequestStub(
-        req.method,
+      RequestStubIn(
+        MethodStub.FixedMethod(req.method),
         RequestPathAndQuery(
           req.paths.map(rp => PathElement.Fixed(rp.path)),
-          QueryStub(
-            ListSet.from(req.queries.map(rq => QueryElement.FixedQuery(rq.key, rq.values, isRequired = true)))
-          )
+          ListSet.from(req.queries.map(rq => QueryElement.FixedQuery(rq.key, rq.values, isRequired = true)))
         )
       )
     )
@@ -29,19 +27,19 @@ class LiveStubSdk[F[_]](uri: Uri)(implicit backend: SttpBackend[F, Any]) {
   def when[I, E, O, S](endpoint: Endpoint[I, E, O, S]): OutgoingStubbing[F] = {
     new OutgoingStubbing(
       uri,
-      RequestStub(
-        endpoint.httpMethod.map(MethodValue.FixedMethod).getOrElse(MethodValue.Wildcard),
+      RequestStubIn(
+        endpoint.httpMethod.map(MethodStub.FixedMethod).getOrElse(MethodStub.Wildcard),
         endpoint.renderPathTemplate((_, _) => "*", Some((_, _) => "*"), includeAuth = false)
       )
     )
   }
 
-  def when(requestStub: RequestStub): OutgoingStubbing[F] = {
+  def when(requestStub: RequestStubIn): OutgoingStubbing[F] = {
     new OutgoingStubbing(uri, requestStub)
   }
 }
 
-class OutgoingStubbing[F[_]](uri: Uri, requestStub: RequestStub)(implicit
+class OutgoingStubbing[F[_]](uri: Uri, requestStub: RequestStubIn)(implicit
     backend: SttpBackend[F, Any]
 ) {
   def thenRespond(response: Response): F[SttpResponse[Either[Unit, StubEndpointResponse]]] = {

@@ -1,10 +1,10 @@
-package sttp.livestub
+package sttp.livestub.app.openapi
 
 import cats.syntax.all._
 import com.softwaremill.tagging.@@
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Json
-import sttp.livestub.RandomValueGenerator.Seed
+import sttp.livestub.app.openapi.RandomValueGenerator.Seed
 import sttp.livestub.openapi.OpenapiSchemaType
 
 import java.time.{LocalDate, LocalDateTime}
