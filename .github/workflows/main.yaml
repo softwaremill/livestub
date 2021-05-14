@@ -18,7 +18,7 @@ jobs:
           java-version: adopt@1.11
       - name: Run tests with sbt
         run: sbt test
-      - name: Run tests with sbt
+      - name: Compile docs with mdoc
         run: sbt compileDocumentation
 
   publish:
