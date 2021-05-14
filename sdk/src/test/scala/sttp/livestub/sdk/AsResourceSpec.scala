@@ -1,22 +1,20 @@
 package sttp.livestub.sdk
 
-import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResource, CatsResourceIO}
-import io.circe.Json
+import cats.effect._
+import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
+import cats.syntax.all._
 import org.scalatest.freespec.FixtureAsyncFreeSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.client3._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.livestub.api.{MethodStub, RequestStubIn, Response}
-import sttp.model.{Header, StatusCode}
-import sttp.tapir.Tapir
-import cats.effect._
-import cats.implicits.catsSyntaxApplicativeId
-import org.scalatest.Assertion
+import sttp.livestub.api.Response
 import sttp.livestub.app.LiveStubServer
 import sttp.livestub.app.LiveStubServer.Config
-import scala.concurrent.ExecutionContext.Implicits.global
+import sttp.model.StatusCode
+import sttp.tapir.Tapir
+
 import scala.concurrent.ExecutionContext
-import cats.syntax.all._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class AsResourceSpec
     extends FixtureAsyncFreeSpec
@@ -39,6 +37,5 @@ class AsResourceSpec
     sdk.when(request).thenRespondR(Response(None, StatusCode.Ok)).use { _ =>
       request.send(backend).map(response => response.code shouldBe StatusCode.Ok)
     }
-
   }
 }
