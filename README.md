@@ -14,7 +14,7 @@ With livestub you can easly setup http server that behaves exactly as you would 
 ### launch
  - **coursier**
 
-    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.15 -- -p 7070`
+    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.16 -- -p 7070`
 
 - **docker**
 
@@ -23,7 +23,7 @@ With livestub you can easly setup http server that behaves exactly as you would 
 - **code**
 
 ```scala
-    import sttp.livestub.app.LiveStubServer
+import sttp.livestub.app.LiveStubServer
     import sttp.livestub.app.LiveStubServer.Config
     LiveStubServer.resource(Config(port = 7070))
 ```
@@ -92,13 +92,12 @@ curl -X POST 'localhost:7070/__set_many' \
 ### stubbing from code - sdk
 
 ```scala
-libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.15"
+libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.16"
 ```
 
-Given that very self-explanatory bootstrap:
+Given a bunch of imports
 ```scala
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.client3.asynchttpclient._
 import sttp.client3.SttpBackend
 import sttp.livestub.sdk._
 import sttp.livestub.api._
@@ -112,7 +111,7 @@ you can stub an arbitrary request:
 AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
   val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub
-    .when(RequestStub(MethodValue.Wildcard, "/user/*/status"))
+    .when(RequestStubIn(MethodStub.Wildcard, "/user/*/status"))
     .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
 ```
