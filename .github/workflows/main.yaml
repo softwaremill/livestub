@@ -18,6 +18,8 @@ jobs:
           java-version: adopt@1.11
       - name: Run tests with sbt
         run: sbt test
+      - name: Run tests with sbt
+        run: sbt compileDocumentation
 
   publish:
     name: Publish release

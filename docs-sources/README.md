@@ -105,7 +105,6 @@ libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.
 Given a bunch of imports
 ```scala mdoc:silent
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.client3.asynchttpclient._
 import sttp.client3.SttpBackend
 import sttp.livestub.sdk._
 import sttp.livestub.api._
@@ -119,7 +118,7 @@ you can stub an arbitrary request:
 AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
   val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub
-    .when(RequestStub(MethodValue.Wildcard, "/user/*/status"))
+    .when(RequestStubIn(MethodStub.Wildcard, "/user/*/status"))
     .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
 ```
