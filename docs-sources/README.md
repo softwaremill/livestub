@@ -14,7 +14,7 @@ With livestub you can easly setup http server that behaves exactly as you would 
 ### launch
  - **coursier**
 
-    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.16 -- -p 7070`
+    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.17 -- -p 7070`
 
 - **docker**
 
@@ -99,7 +99,7 @@ curl -X POST 'localhost:7070/__set_many' \
 ### stubbing from code - sdk
 
 ```scala
-libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.16"
+libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.17"
 ```
 
 Given a bunch of imports
