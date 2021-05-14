@@ -33,7 +33,9 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
       val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
       val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
-      livestub.when(myEndpoint).thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
+      livestub
+        .when(myEndpoint)
+        .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
     }
   }
 

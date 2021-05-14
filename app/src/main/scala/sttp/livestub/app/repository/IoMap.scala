@@ -4,6 +4,9 @@ import cats.effect.IO
 import cats.effect.concurrent.Ref
 
 class IoMap[K, V](ref: Ref[IO, Map[K, V]]) {
+  def remove(predicate: K => Boolean): IO[Unit] = {
+    ref.update(_.filterNot { case (k, _) => predicate(k) })
+  }
 
   def put(k: K, v: V): IO[Unit] = {
     ref.update(m => m + (k -> v))
