@@ -38,6 +38,10 @@ case class StubRepository(
 
   def getAll: IO[List[(EndpointStub, NonEmptyList[Response])]] =
     endpoints.getAll.map(_.view.mapValues(rr => rr.responses).toList)
+
+  def remove(id: UUID): IO[Unit] = {
+    endpoints.remove(k => k.id == id)
+  }
 }
 
 case class EndpointStub(

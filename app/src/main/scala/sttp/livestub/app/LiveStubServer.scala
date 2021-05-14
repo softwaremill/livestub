@@ -22,6 +22,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s._
 import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) extends FLogger {
@@ -52,6 +53,13 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) ex
           stubbedCalls
             .put(endpointStub, thenList)
             .map(_ => StubEndpointResponse(endpointStub.toStubOut, thenList).asRight[Unit])
+      }
+
+  val deleteEndpoint: ServerEndpoint[UUID, Unit, Unit, Any, IO] =
+    LiveStubApi.deleteEndpoint
+      .serverLogic { stubId =>
+        log(s"Got delete stub request with id $stubId") >>
+          stubbedCalls.remove(stubId).map(_.asRight[Unit])
       }
 
   val setupManyEndpoint: ServerEndpoint[StubManyEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
@@ -96,7 +104,7 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) ex
     LiveStubApi.clearEndpoint.serverLogic(_ => stubbedCalls.clear().map(_.asRight[Unit]))
 
   private val endpoints: List[ServerEndpoint[_, _, _, Any, IO]] =
-    List(setupEndpoint, setupManyEndpoint, clearEndpoint, routesEndpoint, catchEndpoint)
+    List(setupEndpoint, setupManyEndpoint, clearEndpoint, routesEndpoint, deleteEndpoint, catchEndpoint)
 
   private def log(message: String) =
     if (!quiet) {

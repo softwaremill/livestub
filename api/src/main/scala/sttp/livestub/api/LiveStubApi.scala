@@ -37,6 +37,10 @@ object LiveStubApi extends LiveStubTapirSupport with JsonSupport with TapirCodec
 
   val clearEndpoint: Endpoint[Unit, Unit, Unit, Any] = endpoint.post.in("__clear")
 
+  val deleteEndpoint: Endpoint[UUID, Unit, Unit, Any] = endpoint.delete
+    .in("__delete")
+    .in(path[UUID]("stubId"))
+
   val routesEndpoint: Endpoint[Unit, Unit, StubbedRoutesResponse, Any] =
     endpoint.get.in("__routes").out(jsonBody[StubbedRoutesResponse])
 }

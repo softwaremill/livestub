@@ -98,10 +98,12 @@ lazy val sdk: Project = (project in file("sdk"))
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.3" % Test,
-      "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test
+      "org.typelevel" %% "cats-effect" % "2.3.3",
+      "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
+      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.3" % Test
     )
   )
-  .dependsOn(api)
+  .dependsOn(api, app % Test)
 
 val compileDocumentation: TaskKey[Unit] = taskKey[Unit]("Compiles documentation throwing away its output")
 compileDocumentation := {
