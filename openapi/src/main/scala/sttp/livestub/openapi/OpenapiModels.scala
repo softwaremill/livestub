@@ -2,6 +2,8 @@ package sttp.livestub.openapi
 
 import sttp.model.{MediaType, Method, StatusCode}
 
+import scala.util.Try
+
 // https://swagger.io/specification/
 object OpenapiModels {
 
@@ -113,6 +115,11 @@ object OpenapiModels {
 
   implicit val OpenapiRequestBodyDecoder: Decoder[OpenapiRequestBody] = deriveDecoder[OpenapiRequestBody]
 
+  private object IsStatusCode {
+    def unapply(code: String): Option[StatusCode] =
+      Try(code.toInt).map(StatusCode.unsafeApply).toOption
+  }
+
   implicit val OpenapiResponseDecoder: Decoder[List[OpenapiResponse]] = { (c: HCursor) =>
     implicit val InnerDecoder: Decoder[(String, List[OpenapiResponseContent])] = { (c: HCursor) =>
       for {
@@ -126,10 +133,11 @@ object OpenapiModels {
       schema <- c.as[Map[String, (String, List[OpenapiResponseContent])]]
     } yield {
       schema.collect {
-        case (code, (desc, content)) if code != "default" =>
-          OpenapiResponse(ResponseStatusCode.Fixed(StatusCode.unsafeApply(code.toInt)), desc, content)
-        case (code, (desc, content)) if code != "default" =>
+        case (code, (desc, content)) if code == "default" =>
           OpenapiResponse(ResponseStatusCode.Default, desc, content)
+        case (IsStatusCode(code), (desc, content)) =>
+          OpenapiResponse(ResponseStatusCode.Fixed(code), desc, content)
+        case (code, _) => throw new IllegalArgumentException(s"Unknown response status code: $code")
       }.toList
     }
   }
