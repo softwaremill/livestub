@@ -15,7 +15,8 @@ import sttp.livestub.openapi.OpenapiModels.{
   OpenapiRequestBody,
   OpenapiRequestBodyContent,
   OpenapiResponse,
-  OpenapiResponseContent
+  OpenapiResponseContent,
+  ResponseStatusCode
 }
 import sttp.livestub.openapi.OpenapiSchemaType.{
   OpenapiSchemaArray,
@@ -216,7 +217,15 @@ class OpenapiParserSpec extends AnyFlatSpec with Matchers with EitherValues with
           ),
           OpenapiPath(
             "/user/logout",
-            List(OpenapiPathMethod(Method.GET, List(), List(), None, Some("Logs out current logged in user session")))
+            List(
+              OpenapiPathMethod(
+                Method.GET,
+                List(),
+                List(OpenapiResponse(ResponseStatusCode.Default, "successful operation", List())),
+                None,
+                Some("Logs out current logged in user session")
+              )
+            )
           ),
           OpenapiPath(
             "/store/inventory",
@@ -257,7 +266,8 @@ class OpenapiParserSpec extends AnyFlatSpec with Matchers with EitherValues with
                         OpenapiSchemaRef("#/components/schemas/User")
                       )
                     )
-                  )
+                  ),
+                  OpenapiResponse(ResponseStatusCode.Default, "successful operation", List())
                 ),
                 Some(
                   OpenapiRequestBody(
@@ -281,7 +291,15 @@ class OpenapiParserSpec extends AnyFlatSpec with Matchers with EitherValues with
               OpenapiPathMethod(
                 Method.POST,
                 List(),
-                List(),
+                List(
+                  OpenapiResponse(
+                    ResponseStatusCode.Default,
+                    "successful operation",
+                    List(
+                      OpenapiResponseContent(MediaType.ApplicationJson, OpenapiSchemaRef("#/components/schemas/User"))
+                    )
+                  )
+                ),
                 Some(
                   OpenapiRequestBody(
                     None,
@@ -369,7 +387,7 @@ class OpenapiParserSpec extends AnyFlatSpec with Matchers with EitherValues with
                     OpenapiSchemaString(false, None)
                   )
                 ),
-                List(),
+                List(OpenapiResponse(ResponseStatusCode.Default, "successful operation", List())),
                 Some(
                   OpenapiRequestBody(
                     None,
