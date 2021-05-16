@@ -32,9 +32,9 @@ lazy val dockerSettings = Seq(
   dockerExposedPorts := Seq(7070),
   dockerBaseImage := "openjdk:8u212-jdk-stretch",
   dockerUsername := Some("softwaremill"),
-  packageName in Docker := "sttp.livestub",
+  Docker / packageName := "sttp.livestub",
   dockerUpdateLatest := true,
-  version in Docker := { version.value.replace("+", "_") }
+  Docker / version := { version.value.replace("+", "_") }
 )
 
 lazy val commonSettings: Seq[Def.Setting[_]] = commonSmlBuildSettings ++ ossPublishSettings ++ Seq(
