@@ -1,7 +1,8 @@
 package sttp.livestub.api
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder.Result
+import io.circe.{Decoder, Encoder, HCursor, Json}
 import io.circe.generic.extras.{AutoDerivation, Configuration}
-import sttp.model.{Method, StatusCode}
+import sttp.model.{Header, Method, StatusCode}
 
 trait JsonSupport extends AutoDerivation {
   implicit val config: Configuration = Configuration.default.withDefaults
@@ -44,5 +45,13 @@ trait JsonSupport extends AutoDerivation {
   }
   implicit val requestPathAndQueryDecoder: Decoder[RequestPathAndQuery] =
     Decoder.decodeString.map(RequestPathAndQuery.fromString)
-
+  implicit val headerEncoder: Encoder[Header] = (a: Header) => {
+    Json.obj("name" -> Json.fromString(a.name), "value" -> Json.fromString(a.value))
+  }
+  implicit val headerDecoder: Decoder[Header] = (c: HCursor) => {
+    for {
+      name <- c.downField("name").as[String]
+      value <- c.downField("value").as[String]
+    } yield Header.unsafeApply(name, value)
+  }
 }
