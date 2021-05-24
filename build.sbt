@@ -74,7 +74,7 @@ lazy val app: Project = (project in file("app"))
       "com.softwaremill.common" %% "tagging" % "2.3.0",
       "org.typelevel" %% "cats-core" % "2.6.1",
       "org.scalatest" %% "scalatest" % "3.2.9" % Test,
-      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.3" % Test
+      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
   .dependsOn(api, openapi)
@@ -100,7 +100,7 @@ lazy val sdk: Project = (project in file("sdk"))
       "org.scalatest" %% "scalatest" % "3.2.3" % Test,
       "org.typelevel" %% "cats-effect" % "2.5.1",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
-      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.3" % Test
+      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
     )
   )
   .dependsOn(api, app % Test)
