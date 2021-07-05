@@ -134,7 +134,7 @@ lazy val openapi = project
     name := "openapi",
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
-      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.2" % Test,
+      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.3" % Test,
       "org.scalatest" %% "scalatest" % "3.2.9" % Test
     ) ++ jsonDependencies
   )
