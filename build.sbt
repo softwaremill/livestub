@@ -4,8 +4,8 @@ import sbt.Def
 val http4sVersion = "0.21.24"
 val circeVersion = "0.14.1"
 val circeYamlVersion = "0.14.0"
-val tapirVersion = "0.17.19"
-val sttpClientVersion = "3.3.9"
+val tapirVersion = "0.17.20"
+val sttpClientVersion = "3.1.9"
 val declineVersion = "1.4.0"
 
 val jsonDependencies = Seq(
@@ -134,7 +134,7 @@ lazy val openapi = project
     name := "openapi",
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
-      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.2" % Test,
+      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.3" % Test,
       "org.scalatest" %% "scalatest" % "3.2.9" % Test
     ) ++ jsonDependencies
   )
