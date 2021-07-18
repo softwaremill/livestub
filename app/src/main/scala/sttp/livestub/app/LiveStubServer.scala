@@ -1,7 +1,7 @@
 package sttp.livestub.app
 
 import cats.data.NonEmptyList
-import cats.effect.{ContextShift, IO, Resource, Timer}
+import cats.effect.{IO, Resource}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Json
@@ -24,13 +24,13 @@ import sttp.tapir.swagger.http4s.SwaggerHttp4s
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
+import cats.effect.Temporal
 
 class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) extends FLogger {
 
   def resource(implicit
       ec: ExecutionContext,
-      contextShift: ContextShift[IO],
-      timer: Timer[IO]
+      timer: Temporal[IO]
   ): Resource[IO, Unit] =
     BlazeServerBuilder[IO](ec)
       .bindHttp(port, "0.0.0.0")
@@ -133,8 +133,7 @@ object LiveStubServer extends FLogger {
 
   def resource(config: Config)(implicit
       ec: ExecutionContext,
-      contextShift: ContextShift[IO],
-      timer: Timer[IO]
+      timer: Temporal[IO]
   ): Resource[IO, Unit] = {
     Resource
       .eval(create(config))
