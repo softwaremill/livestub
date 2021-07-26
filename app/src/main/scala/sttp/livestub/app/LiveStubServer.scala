@@ -3,7 +3,7 @@ package sttp.livestub.app
 import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO, Resource, Timer}
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import io.circe.Json
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
