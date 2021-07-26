@@ -14,11 +14,19 @@ With livestub you can easly setup http server that behaves exactly as you would 
 ### launch
  - **coursier**
 
-    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.10 -- -p 7070`
+    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.18 -- -p 7070`
 
 - **docker**
 
     `docker run -p 7070:7070 softwaremill/sttp.livestub`
+
+- **code**
+
+```scala
+import sttp.livestub.app.LiveStubServer
+    import sttp.livestub.app.LiveStubServer.Config
+    LiveStubServer.resource(Config(port = 7070))
+```
 
 ### stub
 ```bash
@@ -84,43 +92,37 @@ curl -X POST 'localhost:7070/__set_many' \
 ### stubbing from code - sdk
 
 ```scala
-libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.10"
+libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.18"
 ```
 
-Given that very self-explanatory bootstrap:
+Given a bunch of imports
 ```scala
-import cats.effect._
-import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.client.asynchttpclient._
-import sttp.client.SttpBackend
-import scala.concurrent._
+import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import sttp.client3.SttpBackend
 import sttp.livestub.sdk._
 import sttp.livestub.api._
-import sttp.client.{Response => _, _}
+import sttp.client3.{Response => _, _}
 import sttp.model._
 import io.circe.Json
-
-implicit val cs = IO.contextShift(ExecutionContext.global)
-implicit val timer = IO.timer(ExecutionContext.global)
 ```
 
 you can stub an arbitrary request:
 ```scala
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
-  val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub
-    .when(RequestStub(MethodValue.Wildcard, "/user/*/status"))
+    .when(RequestStubIn(MethodStub.Wildcard, "/user/*/status"))
     .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
 ```
 stub given [sttp](https://github.com/softwaremill/sttp) request:
 ```scala
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
   val request = basicRequest
     .body(Map("name" -> "John", "surname" -> "doe"))
     .post(uri"https://httpbin.org/post?signup=123")
 
-  val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub.when(request).thenRespond(Response(Some(Json.fromString("OK")), StatusCode.Ok))
 }
 ```
@@ -128,11 +130,32 @@ or stub given [tapir](https://github.com/softwaremill/tapir) endpoint:
 ```scala
 import sttp.tapir._
 
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Nothing, WebSocketHandler] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
   val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
-  val livestub = new LiveStubSdk[IO, Nothing, WebSocketHandler](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
   livestub.when(myEndpoint)
           .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
 ```
+
+## OpenApi integration
+
+OpenApi specification can be provided to bootstrap livestub server with auto generated endpoints.
+For each given path a request-response stub will be generated matching particular url. Both path parameters and required query parameters will be
+replaced by wildcard matches. That means that neither optional query parameters, request body nor headers are going to be checked when matching
+stubbed endpoint.
+
+Response structure will follow openapi schema. Response data will be created
+based on openapi respective example parameters if provided, otherwise random data will be used(whenever it is possible).
+
+
+
+For endpoints, which are defined in openapi specification but for which responses
+couldn't be generated empty response body will be returned.
+
+Usage:
+`--openapi-spec <path_to_file>`
+
+In addition, seed value for random data generator can be passed via:
+`--seed 1234`

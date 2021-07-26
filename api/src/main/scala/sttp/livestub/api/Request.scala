@@ -3,16 +3,20 @@ package sttp.livestub.api
 import sttp.model.{Method, Uri}
 
 case class Request(
-    method: MethodValue.FixedMethod,
-    paths: List[PathElement.Fixed],
-    queries: List[QueryElement.FixedQuery]
+    method: Method,
+    paths: List[RequestPath],
+    queries: List[RequestQuery]
 )
+
+case class RequestPath(path: String)
+case class RequestQuery(key: String, values: Seq[String])
+
 object Request {
   def apply(method: Method, paths: Seq[String], queries: Seq[(String, Seq[String])]): Request = {
     new Request(
-      MethodValue.FixedMethod(method),
-      paths.map(PathElement.Fixed).toList,
-      queries.map(s => QueryElement.FixedQuery(s._1, s._2)).toList
+      method,
+      paths.map(RequestPath).toList,
+      queries.map(s => RequestQuery(s._1, s._2)).toList
     )
   }
 
