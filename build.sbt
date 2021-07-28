@@ -18,7 +18,7 @@ val jsonDependencies = Seq(
 
 val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
-  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "ch.qos.logback" % "logback-classic" % "1.2.5",
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
 )
 
@@ -98,7 +98,7 @@ lazy val sdk: Project = (project in file("sdk"))
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.3" % Test,
-      "org.typelevel" %% "cats-effect" % "3.2.0",
+      "org.typelevel" %% "cats-effect" % "2.5.2",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
       "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
     )
@@ -134,7 +134,7 @@ lazy val openapi = project
     name := "openapi",
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
-      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.3" % Test,
+      "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.4" % Test,
       "org.scalatest" %% "scalatest" % "3.2.9" % Test
     ) ++ jsonDependencies
   )
