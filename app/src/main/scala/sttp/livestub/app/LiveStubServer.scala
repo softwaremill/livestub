@@ -6,7 +6,7 @@ import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Json
 import org.http4s.server.Router
-import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.syntax.kleisli._
 import sttp.livestub.api._
 import sttp.livestub.app.LiveStubServer.{RichEndpointStub, RichRequestStub}
