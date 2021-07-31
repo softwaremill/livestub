@@ -2,13 +2,13 @@ package sttp.livestub.app.repository
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.effect.concurrent.Ref
 import sttp.livestub.api._
 import sttp.livestub.app.matchers.{MatchResult, MethodMatcher, PathElementMatcher, QueryElementMatcher}
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 import scala.collection.immutable.ListSet
+import cats.effect.Ref
 
 case class StubRepository(
     endpoints: IoMap[EndpointStub, ResponseRotator]
