@@ -1,7 +1,7 @@
 package sttp.livestub.sdk
 
 import cats.MonadError
-import cats.effect.{Bracket, Resource}
+import cats.effect.Resource
 import cats.syntax.all._
 import sttp.client3.{Request, SttpBackend}
 import sttp.livestub.api._
@@ -11,6 +11,7 @@ import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp._
 
 import scala.collection.immutable.ListSet
+import cats.effect.MonadCancel
 
 class LiveStubSdk[F[_]: AppError: AppBracket](uri: Uri)(implicit backend: SttpBackend[F, Any]) {
 
@@ -44,7 +45,7 @@ class LiveStubSdk[F[_]: AppError: AppBracket](uri: Uri)(implicit backend: SttpBa
 }
 object LiveStubSdk {
   type AppError[F[_]] = MonadError[F, Throwable]
-  type AppBracket[F[_]] = Bracket[F, Throwable]
+  type AppBracket[F[_]] = MonadCancel[F, Throwable]
 }
 
 class OutgoingStubbing[F[_]: AppError: AppBracket](uri: Uri, requestStub: RequestStubIn)(implicit
