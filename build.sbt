@@ -19,7 +19,7 @@ val jsonDependencies = Seq(
 val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
   "ch.qos.logback" % "logback-classic" % "1.2.7",
-  "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
+  "org.typelevel" %% "log4cats-slf4j" % "1.2.0"
 )
 
 val apiDocsDependencies = Seq(
