@@ -18,8 +18,8 @@ val jsonDependencies = Seq(
 
 val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
-  "ch.qos.logback" % "logback-classic" % "1.2.7",
-  "org.typelevel" %% "log4cats-slf4j" % "1.2.0"
+  "ch.qos.logback" % "logback-classic" % "1.2.8",
+  "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
 )
 
 val apiDocsDependencies = Seq(
@@ -71,8 +71,8 @@ lazy val app: Project = (project in file("app"))
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
       "com.monovore" %% "decline" % declineVersion,
       "com.monovore" %% "decline-effect" % declineVersion,
-      "com.softwaremill.common" %% "tagging" % "2.3.1",
-      "org.typelevel" %% "cats-core" % "2.6.1",
+      "com.softwaremill.common" %% "tagging" % "2.3.2",
+      "org.typelevel" %% "cats-core" % "2.7.0",
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
