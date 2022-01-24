@@ -73,7 +73,7 @@ lazy val app: Project = (project in file("app"))
       "com.monovore" %% "decline-effect" % declineVersion,
       "com.softwaremill.common" %% "tagging" % "2.3.2",
       "org.typelevel" %% "cats-core" % "2.7.0",
-      "org.scalatest" %% "scalatest" % "3.2.10" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
@@ -135,7 +135,7 @@ lazy val openapi = project
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
       "com.softwaremill.diffx" %% "diffx-scalatest" % "0.6.0" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.10" % Test
+      "org.scalatest" %% "scalatest" % "3.2.11" % Test
     ) ++ jsonDependencies
   )
 
