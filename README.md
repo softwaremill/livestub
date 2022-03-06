@@ -92,7 +92,7 @@ curl -X POST 'localhost:7070/__set_many' \
 ### stubbing from code - sdk
 
 ```scala
-libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.1.18"
+libraryDependencies += "com.softwaremill.sttp.livestub" %% "livestub-sdk" % "0.1.18"
 ```
 
 Given a bunch of imports

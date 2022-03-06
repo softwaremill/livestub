@@ -1,7 +1,7 @@
 import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
-val http4sVersion = "0.21.31"
+val http4sVersion = "0.21.32"
 val circeVersion = "0.14.1"
 val circeYamlVersion = "0.14.1"
 val tapirVersion = "0.17.20"
@@ -18,7 +18,7 @@ val jsonDependencies = Seq(
 
 val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
-  "ch.qos.logback" % "logback-classic" % "1.2.10",
+  "ch.qos.logback" % "logback-classic" % "1.2.11",
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
 )
 
@@ -73,7 +73,7 @@ lazy val app: Project = (project in file("app"))
       "com.monovore" %% "decline-effect" % declineVersion,
       "com.softwaremill.common" %% "tagging" % "2.3.2",
       "org.typelevel" %% "cats-core" % "2.7.0",
-      "org.scalatest" %% "scalatest" % "3.2.10" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
@@ -135,7 +135,7 @@ lazy val openapi = project
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
       "com.softwaremill.diffx" %% "diffx-scalatest" % "0.6.0" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.10" % Test
+      "org.scalatest" %% "scalatest" % "3.2.11" % Test
     ) ++ jsonDependencies
   )
 

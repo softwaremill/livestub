@@ -37,7 +37,7 @@ class RandomValueGenerator(schemas: Map[String, OpenapiSchemaType], seed: Option
       case OpenapiSchemaType.OpenapiSchemaFloat(_, example) =>
         Json.fromFloat(example.getOrElse(random.nextFloat())).fold("wrong float".asLeft[Json])(Right(_))
       case OpenapiSchemaType.OpenapiSchemaArray(items, _) =>
-        nextRandom(items).map(item => Json.arr(item)) //TODO make configurable?
+        nextRandom(items).map(item => Json.arr(item)) // TODO make configurable?
       case OpenapiSchemaType.OpenapiSchemaObject(properties, _, _, example, _) =>
         example.map(Right(_)).getOrElse(createObject(properties))
       case OpenapiSchemaType.OpenapiSchemaRef(ref) =>

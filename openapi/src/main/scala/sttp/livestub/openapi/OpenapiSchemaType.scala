@@ -10,7 +10,7 @@ object OpenapiSchemaType {
   sealed trait OpenapiSchemaMixedType extends OpenapiSchemaType
   sealed trait OpenapiSchemaSimpleType extends OpenapiSchemaType
 
-  //https://swagger.io/docs/specification/data-models/oneof-anyof-allof-not/
+  // https://swagger.io/docs/specification/data-models/oneof-anyof-allof-not/
   case class OpenapiSchemaOneOf(
       types: Seq[OpenapiSchemaSimpleType]
   ) extends OpenapiSchemaMixedType {
@@ -35,8 +35,8 @@ object OpenapiSchemaType {
     val nullable: Boolean = false
   }
 
-  //https://swagger.io/docs/specification/data-models/data-types/#numbers
-  //no min/max, exclusiveMin/exclusiveMax, multipleOf support
+  // https://swagger.io/docs/specification/data-models/data-types/#numbers
+  // no min/max, exclusiveMin/exclusiveMax, multipleOf support
   sealed trait OpenapiSchemaNumericType extends OpenapiSchemaSimpleType
 
   case class OpenapiSchemaDouble(
@@ -56,8 +56,8 @@ object OpenapiSchemaType {
       example: Option[Int]
   ) extends OpenapiSchemaNumericType
 
-  //https://swagger.io/docs/specification/data-models/data-types/#string
-  //no minLength/maxLength, pattern support
+  // https://swagger.io/docs/specification/data-models/data-types/#string
+  // no minLength/maxLength, pattern support
   sealed trait OpenapiSchemaStringType extends OpenapiSchemaSimpleType
 
   case class OpenapiSchemaString(
@@ -90,13 +90,13 @@ object OpenapiSchemaType {
     val nullable = false
   }
 
-  //no minItems/maxItems, uniqueItems support
+  // no minItems/maxItems, uniqueItems support
   case class OpenapiSchemaArray(
       items: OpenapiSchemaType,
       nullable: Boolean
   ) extends OpenapiSchemaType
 
-  //no readOnly/writeOnly, minProperties/maxProperties support
+  // no readOnly/writeOnly, minProperties/maxProperties support
   case class OpenapiSchemaObject(
       properties: Map[String, OpenapiSchemaType],
       required: Seq[String],
@@ -105,9 +105,9 @@ object OpenapiSchemaType {
       additionalProperties: Either[Boolean, OpenapiSchemaType]
   ) extends OpenapiSchemaType
 
-  /////////////////////////////////////////////////////////
+  // ///////////////////////////////////////////////////////
   // decoders
-  ////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////
 
   import io.circe._
   import cats.implicits._
