@@ -71,7 +71,7 @@ lazy val app: Project = (project in file("app"))
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
       "com.monovore" %% "decline" % declineVersion,
       "com.monovore" %% "decline-effect" % declineVersion,
-      "com.softwaremill.common" %% "tagging" % "2.3.2",
+      "com.softwaremill.common" %% "tagging" % "2.3.3",
       "org.typelevel" %% "cats-core" % "2.7.0",
       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
