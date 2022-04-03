@@ -11,28 +11,27 @@ import sttp.model.StatusCode
 import sttp.model.Header
 import sttp.tapir.Tapir
 
-import scala.concurrent.ExecutionContext
-
 class SdkExample extends AnyFreeSpec with Matchers with Tapir {
 
-  private implicit val cs = IO.contextShift(ExecutionContext.global)
+  /** These tests are not executing intentionally, as they serve only as examples. They are here to verify compilation
+    */
 
   "sttp example" in {
-    AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+    AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
       val request = basicRequest
         .body(Map("name" -> "John", "surname" -> "doe"))
         .post(uri"https://httpbin.org/post?signup=123")
 
-      val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+      val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
       livestub.when(request).thenRespond(Response(Some(Json.fromString("OK")), StatusCode.Ok))
     }
   }
 
   "tapir example" in {
-    AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+    AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
       val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
-      val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+      val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
       livestub
         .when(myEndpoint)
         .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
@@ -40,8 +39,8 @@ class SdkExample extends AnyFreeSpec with Matchers with Tapir {
   }
 
   "example" in {
-    AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
-      val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+    AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
+      val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
       livestub
         .when(RequestStubIn(MethodStub.Wildcard, "/user/*/status"))
         .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))

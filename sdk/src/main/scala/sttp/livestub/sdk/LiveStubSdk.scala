@@ -1,18 +1,17 @@
 package sttp.livestub.sdk
 
-import cats.MonadError
-import cats.effect.{Bracket, Resource}
+import cats.effect.Resource
+import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all._
 import sttp.client3.{Request, SttpBackend}
 import sttp.livestub.api._
-import sttp.livestub.sdk.LiveStubSdk.{AppBracket, AppError}
 import sttp.model.Uri
 import sttp.tapir.Endpoint
 import sttp.tapir.client.sttp._
 
 import scala.collection.immutable.ListSet
 
-class LiveStubSdk[F[_]: AppError: AppBracket](uri: Uri)(implicit backend: SttpBackend[F, Any]) {
+class LiveStubSdk[F[_]: MonadCancelThrow](uri: Uri, backend: SttpBackend[F, Any]) {
 
   def when[E, O, R](sttpRequest: Request[Either[E, O], R]): OutgoingStubbing[F] = {
     val req = Request(sttpRequest.method, sttpRequest.uri.path, sttpRequest.uri.params.toMultiSeq)
@@ -24,32 +23,28 @@ class LiveStubSdk[F[_]: AppError: AppBracket](uri: Uri)(implicit backend: SttpBa
           req.paths.map(rp => PathElement.Fixed(rp.path)),
           ListSet.from(req.queries.map(rq => QueryElement.FixedQuery(rq.key, rq.values, isRequired = true)))
         )
-      )
+      ),
+      backend
     )
   }
 
-  def when[I, E, O, S](endpoint: Endpoint[I, E, O, S]): OutgoingStubbing[F] = {
+  def when[P, I, E, O, S](endpoint: Endpoint[P, I, E, O, S]): OutgoingStubbing[F] = {
     new OutgoingStubbing(
       uri,
       RequestStubIn(
-        endpoint.httpMethod.map(MethodStub.FixedMethod).getOrElse(MethodStub.Wildcard),
-        endpoint.renderPathTemplate((_, _) => "*", Some((_, _) => "*"), includeAuth = false)
-      )
+        endpoint.method.map(MethodStub.FixedMethod).getOrElse(MethodStub.Wildcard),
+        endpoint.showPathTemplate((_, _) => "*", Some((_, _) => "*"), includeAuth = false)
+      ),
+      backend
     )
   }
 
   def when(requestStub: RequestStubIn): OutgoingStubbing[F] = {
-    new OutgoingStubbing(uri, requestStub)
+    new OutgoingStubbing(uri, requestStub, backend)
   }
 }
-object LiveStubSdk {
-  type AppError[F[_]] = MonadError[F, Throwable]
-  type AppBracket[F[_]] = Bracket[F, Throwable]
-}
 
-class OutgoingStubbing[F[_]: AppError: AppBracket](uri: Uri, requestStub: RequestStubIn)(implicit
-    backend: SttpBackend[F, Any]
-) {
+class OutgoingStubbing[F[_]: MonadCancelThrow](uri: Uri, requestStub: RequestStubIn, backend: SttpBackend[F, Any]) {
   def thenRespondR(stubResponse: Response): Resource[F, Unit] = {
     Resource.make(setupStub(stubResponse))(deleteStub).void
   }
@@ -59,7 +54,7 @@ class OutgoingStubbing[F[_]: AppError: AppBracket](uri: Uri, requestStub: Reques
   }
 
   private def deleteStub(response: StubEndpointResponse) = {
-    SttpClientInterpreter
+    SttpClientInterpreter()
       .toRequestThrowDecodeFailures(LiveStubApi.deleteEndpoint, Some(uri))
       .apply(response.`when`.id)
       .send(backend)
@@ -74,7 +69,7 @@ class OutgoingStubbing[F[_]: AppError: AppBracket](uri: Uri, requestStub: Reques
   }
 
   private def setupStub(stubResponse: Response) = {
-    SttpClientInterpreter
+    SttpClientInterpreter()
       .toRequestThrowDecodeFailures(LiveStubApi.setupEndpoint, Some(uri))
       .apply(
         StubEndpointRequest(

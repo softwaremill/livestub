@@ -1,8 +1,8 @@
 package sttp.livestub.app.repository
 
 import cats.data.NonEmptyList
+import cats.effect
 import cats.effect.IO
-import cats.effect.concurrent.Ref
 import sttp.livestub.api._
 import sttp.livestub.app.matchers.{MatchResult, MethodMatcher, PathElementMatcher, QueryElementMatcher}
 
@@ -71,7 +71,7 @@ class ResponseRotator(val responses: NonEmptyList[Response]) {
 }
 
 object StubRepository {
-  def apply(): IO[StubRepository] = Ref
+  def apply(): IO[StubRepository] = effect.Ref
     .of[IO, Map[EndpointStub, ResponseRotator]](Map())
     .map(new IoMap(_))
     .map(StubRepository.apply)

@@ -1,9 +1,9 @@
 package sttp.livestub.sdk
 
 import cats.effect._
-import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
-import cats.syntax.all._
-import org.scalatest.freespec.FixtureAsyncFreeSpec
+import cats.effect.testing.scalatest.AsyncIOSpec
+import org.http4s.Uri
+import org.scalatest.freespec.AsyncFreeSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.client3._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
@@ -13,29 +13,29 @@ import sttp.livestub.app.LiveStubServer.Config
 import sttp.model.StatusCode
 import sttp.tapir.Tapir
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
+class AsResourceSpec extends AsyncFreeSpec with AsyncIOSpec with Matchers with Tapir {
 
-class AsResourceSpec
-    extends FixtureAsyncFreeSpec
-    with AsyncIOSpec
-    with Matchers
-    with Tapir
-    with CatsResourceIO[SttpBackend[IO, Any]] {
-  private implicit val cs = IO.contextShift(ExecutionContext.global)
+  val resource: Resource[IO, (Uri, SttpBackend[IO, Any])] =
+    for {
+      baseUri <- LiveStubServer.resource(Config(port = 0)).map(_.baseUri)
+      backend <- AsyncHttpClientCatsBackend.resource[IO]()
+    } yield (baseUri, backend)
 
-  override def resource: Resource[IO, SttpBackend[IO, Any]] =
-    LiveStubServer.resource(Config(port = 7070)) >> AsyncHttpClientCatsBackend.resource[IO]()
-
-  val request = basicRequest
+  private def request(baseUri: sttp.model.Uri) = basicRequest
     .body(Map("name" -> "John", "surname" -> "doe"))
-    .post(uri"http://localhost:7070/post?signup=123")
+    .post(uri"$baseUri/post?signup=123")
 
-  "e2e test case" in { implicit backend: SttpBackend[IO, Any] =>
-    val sdk = new LiveStubSdk[IO](uri"http://localhost:7070")
+  "e2e test case" in {
+    resource.use { case (baseUri, backend) =>
+      val sttpUri = sttp.model.Uri.parse(baseUri.renderString).getOrElse(???)
+      val sdk = new LiveStubSdk[IO](sttpUri, backend)
 
-    sdk.when(request).thenRespondR(Response(None, StatusCode.Ok)).use { _ =>
-      request.send(backend).map(response => response.code shouldBe StatusCode.Ok)
+      sdk
+        .when(request(sttpUri))
+        .thenRespondR(Response(None, StatusCode.Ok))
+        .use { _ =>
+          request(sttpUri).send(backend).map(response => response.code shouldBe StatusCode.Ok)
+        }
     }
   }
 }

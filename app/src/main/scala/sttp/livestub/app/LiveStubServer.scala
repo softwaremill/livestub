@@ -1,13 +1,12 @@
 package sttp.livestub.app
 
 import cats.data.NonEmptyList
-import cats.effect.{ContextShift, IO, Resource, Timer}
+import cats.effect.{IO, Resource}
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
 import io.circe.Json
-import org.http4s.server.Router
-import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.syntax.kleisli._
+import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.server.{Router, Server}
+import org.typelevel.log4cats.Logger
 import sttp.livestub.api._
 import sttp.livestub.app.LiveStubServer.{RichEndpointStub, RichRequestStub}
 import sttp.livestub.app.openapi.RandomValueGenerator.Seed
@@ -15,36 +14,32 @@ import sttp.livestub.app.openapi.{OpenapiStubsCreator, RandomValueGenerator}
 import sttp.livestub.app.repository.{EndpointStub, StubRepository}
 import sttp.livestub.openapi.OpenapiModels.OpenapiDocument
 import sttp.model.{Header, StatusCode}
-import sttp.tapir.docs.openapi._
-import sttp.tapir.openapi.Server
-import sttp.tapir.openapi.circe.yaml._
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.http4s._
-import sttp.tapir.swagger.http4s.SwaggerHttp4s
+import sttp.tapir.swagger.SwaggerUIOptions
+import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
-import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) extends FLogger {
 
   def resource(implicit
-      ec: ExecutionContext,
-      contextShift: ContextShift[IO],
-      timer: Timer[IO]
-  ): Resource[IO, Unit] =
-    BlazeServerBuilder[IO](ec)
+      ec: ExecutionContext
+  ): Resource[IO, Server] = {
+    val interpreter = Http4sServerInterpreter[IO]()
+    BlazeServerBuilder[IO]
+      .withExecutionContext(ec)
       .bindHttp(port, "0.0.0.0")
       .withHttpApp(
         Router[IO](
-          "/__admin" -> docsRoutes.routes[IO],
-          "/" -> Http4sServerInterpreter
-            .toRoutes[IO](endpoints)
+          "/__admin" -> interpreter.toRoutes(docsEndpoints),
+          "/" -> interpreter.toRoutes(endpoints)
         ).orNotFound
       )
       .resource
-      .void
+  }
 
-  val setupEndpoint: ServerEndpoint[StubEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
+  val setupEndpoint: ServerEndpoint[Any, IO] =
     LiveStubApi.setupEndpoint
       .serverLogic { req =>
         val endpointStub = req.`when`.toEndpointStub
@@ -55,14 +50,14 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) ex
             .map(_ => StubEndpointResponse(endpointStub.toStubOut, thenList).asRight[Unit])
       }
 
-  val deleteEndpoint: ServerEndpoint[UUID, Unit, Unit, Any, IO] =
+  val deleteEndpoint: ServerEndpoint[Any, IO] =
     LiveStubApi.deleteEndpoint
       .serverLogic { stubId =>
         log(s"Got delete stub request with id $stubId") >>
           stubbedCalls.remove(stubId).map(_.asRight[Unit])
       }
 
-  val setupManyEndpoint: ServerEndpoint[StubManyEndpointRequest, Unit, StubEndpointResponse, Any, IO] =
+  val setupManyEndpoint: ServerEndpoint[Any, IO] =
     LiveStubApi.setupManyEndpoint
       .serverLogic { req =>
         val endpointStub = req.`when`.toEndpointStub
@@ -72,7 +67,7 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) ex
             .map(_ => StubEndpointResponse(endpointStub.toStubOut, req.`then`).asRight[Unit])
       }
 
-  val catchEndpoint: ServerEndpoint[Request, (StatusCode, String), (StatusCode, Option[Json], List[Header]), Any, IO] =
+  val catchEndpoint: ServerEndpoint[Any, IO] =
     LiveStubApi.catchEndpoint
       .serverLogic { request =>
         log(s"Got request: $request") >>
@@ -90,7 +85,7 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) ex
             )
       }
 
-  val routesEndpoint: ServerEndpoint[Unit, Unit, StubbedRoutesResponse, Any, IO] =
+  val routesEndpoint: ServerEndpoint[Any, IO] =
     LiveStubApi.routesEndpoint.serverLogic { _ =>
       stubbedCalls.getAll
         .map(list =>
@@ -100,10 +95,10 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) ex
         )
     }
 
-  val clearEndpoint: ServerEndpoint[Unit, Unit, Unit, Any, IO] =
+  val clearEndpoint: ServerEndpoint[Any, IO] =
     LiveStubApi.clearEndpoint.serverLogic(_ => stubbedCalls.clear().map(_.asRight[Unit]))
 
-  private val endpoints: List[ServerEndpoint[_, _, _, Any, IO]] =
+  private val endpoints: List[ServerEndpoint[Any, IO]] =
     List(setupEndpoint, setupManyEndpoint, clearEndpoint, routesEndpoint, deleteEndpoint, catchEndpoint)
 
   private def log(message: String) =
@@ -113,13 +108,9 @@ class LiveStubServer(port: Int, quiet: Boolean, stubbedCalls: StubRepository) ex
       IO.unit
     }
 
-  private val docsRoutes: SwaggerHttp4s = {
-    val openapi = OpenAPIDocsInterpreter
-      .serverEndpointsToOpenAPI(endpoints, "Trading-Offering", "1.0")
-      .copy(servers = List(Server("/", None)))
-    val yaml = openapi.toYaml
-    new SwaggerHttp4s(yaml)
-  }
+  private val docsEndpoints =
+    SwaggerInterpreter(swaggerUIOptions = SwaggerUIOptions.default.copy(contextPath = List("__admin")))
+      .fromServerEndpoints(endpoints, "livestub", "1.0.0")
 }
 
 object LiveStubServer extends FLogger {
@@ -131,11 +122,7 @@ object LiveStubServer extends FLogger {
       seed: Option[Seed] = None
   )
 
-  def resource(config: Config)(implicit
-      ec: ExecutionContext,
-      contextShift: ContextShift[IO],
-      timer: Timer[IO]
-  ): Resource[IO, Unit] = {
+  def resource(config: Config)(implicit ec: ExecutionContext): Resource[IO, Server] = {
     Resource
       .eval(create(config))
       .flatMap(_.resource)

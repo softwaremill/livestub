@@ -1,12 +1,12 @@
 import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
-val http4sVersion = "0.21.33"
+val http4sVersion = "0.23.11"
 val circeVersion = "0.14.1"
 val circeYamlVersion = "0.14.1"
-val tapirVersion = "0.17.20"
-val sttpClientVersion = "3.1.9"
-val declineVersion = "1.4.0"
+val tapirVersion = "1.0.0-M6"
+val sttpClientVersion = "3.4.1"
+val declineVersion = "2.2.0"
 
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
@@ -19,13 +19,13 @@ val jsonDependencies = Seq(
 val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
   "ch.qos.logback" % "logback-classic" % "1.2.11",
-  "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
+  "org.typelevel" %% "log4cats-slf4j" % "2.2.0"
 )
 
 val apiDocsDependencies = Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % tapirVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % tapirVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % tapirVersion
+  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirVersion
 )
 
 lazy val dockerSettings = Seq(
@@ -74,7 +74,7 @@ lazy val app: Project = (project in file("app"))
       "com.softwaremill.common" %% "tagging" % "2.3.3",
       "org.typelevel" %% "cats-core" % "2.7.0",
       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
-      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
+      "org.typelevel" %% "cats-effect-testing-scalatest" % "1.4.0" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
   .dependsOn(api, openapi)
@@ -98,9 +98,9 @@ lazy val sdk: Project = (project in file("sdk"))
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.3" % Test,
-      "org.typelevel" %% "cats-effect" % "2.5.4",
+      "org.typelevel" %% "cats-effect" % "3.3.9",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
-      "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4" % Test
+      "org.typelevel" %% "cats-effect-testing-scalatest" % "1.4.0" % Test
     )
   )
   .dependsOn(api, app % Test)

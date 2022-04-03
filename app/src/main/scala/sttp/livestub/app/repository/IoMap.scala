@@ -1,7 +1,6 @@
 package sttp.livestub.app.repository
 
-import cats.effect.IO
-import cats.effect.concurrent.Ref
+import cats.effect.{IO, Ref}
 
 class IoMap[K, V](ref: Ref[IO, Map[K, V]]) {
   def remove(predicate: K => Boolean): IO[Unit] = {
