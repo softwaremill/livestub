@@ -27,9 +27,9 @@ import cats.effect._
 import scala.concurrent.ExecutionContext.Implicits._
 ```
 ```scala mdoc:compile-only
-    import sttp.livestub.app.LiveStubServer
-    import sttp.livestub.app.LiveStubServer.Config
-    LiveStubServer.resource(Config(port = 7070))
+import sttp.livestub.app.LiveStubServer
+import sttp.livestub.app.LiveStubServer.Config
+LiveStubServer.resource(Config(port = 7070))
 ```
 
 ### stub

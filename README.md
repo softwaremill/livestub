@@ -24,8 +24,8 @@ With livestub you can easly setup http server that behaves exactly as you would 
 
 ```scala
 import sttp.livestub.app.LiveStubServer
-    import sttp.livestub.app.LiveStubServer.Config
-    LiveStubServer.resource(Config(port = 7070))
+import sttp.livestub.app.LiveStubServer.Config
+LiveStubServer.resource(Config(port = 7070))
 ```
 
 ### stub
