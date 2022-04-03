@@ -1,5 +1,5 @@
 package sttp.livestub.api
-import io.circe.Decoder.Result
+
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import io.circe.generic.extras.{AutoDerivation, Configuration}
 import sttp.model.{Header, Method, StatusCode}
