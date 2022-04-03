@@ -1,7 +1,6 @@
 package sttp.livestub.openapi
 
-import com.softwaremill.diffx.Diff
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -31,12 +30,11 @@ import sttp.livestub.openapi.OpenapiSchemaType.{
 }
 import sttp.model.{MediaType, Method, StatusCode}
 
-class OpenapiParserSpec extends AnyFlatSpec with Matchers with EitherValues with DiffMatcher with DiffInstances {
+class OpenapiParserSpec extends AnyFlatSpec with Matchers with EitherValues with DiffShouldMatcher with DiffInstances {
   it should "parse correctly petstore specification" in {
     val str = FileLoader.loadFile("petstore.yaml")
     val openapi = YamlParser.parseFile(str).value
-    Diff[OpenapiInfo]
-    openapi should matchTo(
+    openapi shouldMatchTo (
       OpenapiDocument(
         "3.0.2",
         OpenapiInfo("Swagger Petstore - OpenAPI 3.0", "1.0.5"),
