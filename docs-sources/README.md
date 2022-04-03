@@ -24,10 +24,7 @@ With livestub you can easly setup http server that behaves exactly as you would 
 
 ```scala mdoc:invisible
 import cats.effect._
-import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits._
-implicit val cs = IO.contextShift(ExecutionContext.global)
-implicit val timer = IO.timer(ExecutionContext.global)
 ```
 ```scala mdoc:compile-only
     import sttp.livestub.app.LiveStubServer
@@ -115,8 +112,8 @@ import io.circe.Json
 
 you can stub an arbitrary request:
 ```scala mdoc:compile-only
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
-  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
   livestub
     .when(RequestStubIn(MethodStub.Wildcard, "/user/*/status"))
     .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
@@ -124,12 +121,12 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any
 ```
 stub given [sttp](https://github.com/softwaremill/sttp) request:
 ```scala mdoc:compile-only
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
   val request = basicRequest
     .body(Map("name" -> "John", "surname" -> "doe"))
     .post(uri"https://httpbin.org/post?signup=123")
 
-  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
   livestub.when(request).thenRespond(Response(Some(Json.fromString("OK")), StatusCode.Ok))
 }
 ```
@@ -137,10 +134,10 @@ or stub given [tapir](https://github.com/softwaremill/tapir) endpoint:
 ```scala mdoc:compile-only
 import sttp.tapir._
 
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
   val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
-  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
   livestub.when(myEndpoint)
           .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
