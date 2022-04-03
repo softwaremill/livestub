@@ -14,7 +14,7 @@ With livestub you can easly setup http server that behaves exactly as you would 
 ### launch
  - **coursier**
 
-    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.1.18 -- -p 7070`
+    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.2.0 -- -p 7070`
 
 - **docker**
 
@@ -92,7 +92,7 @@ curl -X POST 'localhost:7070/__set_many' \
 ### stubbing from code - sdk
 
 ```scala
-libraryDependencies += "com.softwaremill.sttp.livestub" %% "livestub-sdk" % "0.1.18"
+libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.2.0"
 ```
 
 Given a bunch of imports
@@ -108,8 +108,8 @@ import io.circe.Json
 
 you can stub an arbitrary request:
 ```scala
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
-  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
   livestub
     .when(RequestStubIn(MethodStub.Wildcard, "/user/*/status"))
     .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
@@ -117,12 +117,12 @@ AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any
 ```
 stub given [sttp](https://github.com/softwaremill/sttp) request:
 ```scala
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
   val request = basicRequest
     .body(Map("name" -> "John", "surname" -> "doe"))
     .post(uri"https://httpbin.org/post?signup=123")
 
-  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
   livestub.when(request).thenRespond(Response(Some(Json.fromString("OK")), StatusCode.Ok))
 }
 ```
@@ -130,10 +130,10 @@ or stub given [tapir](https://github.com/softwaremill/tapir) endpoint:
 ```scala
 import sttp.tapir._
 
-AsyncHttpClientCatsBackend[IO]().flatMap { implicit backend: SttpBackend[IO, Any] =>
+AsyncHttpClientCatsBackend[IO]().flatMap { backend: SttpBackend[IO, Any] =>
   val myEndpoint = endpoint.get.in("/status").out(stringBody)
 
-  val livestub = new LiveStubSdk[IO](uri"http://mock:7070")
+  val livestub = new LiveStubSdk[IO](uri"http://mock:7070", backend)
   livestub.when(myEndpoint)
           .thenRespond(Response.emptyBody(StatusCode.Ok, List(Header("X-App", "123"))))
 }
