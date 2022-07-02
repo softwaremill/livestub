@@ -5,7 +5,7 @@ import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
 val http4sVersion = "0.23.12"
-val circeVersion = "0.14.1"
+val circeVersion = "0.14.2"
 val circeYamlVersion = "0.14.1"
 val tapirVersion = "1.0.0-M9"
 val sttpClientVersion = "3.6.2"
