@@ -66,6 +66,12 @@ curl -X POST 'localhost:7070/__set' \
 -d '{"when":{"method":"GET", "url":"dogs/**"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
 ```
 
+wildcard query param: (this one catches all the query parameters for `/dogs`, example: `/dogs?id=1&breed=bulldog`)
+```bash
+curl -X POST 'localhost:7070/__set' \
+-d '{"when":{"method":"GET", "url":"dogs?*"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
+```
+
 ### additional methods
 
 clear stubbed routes
