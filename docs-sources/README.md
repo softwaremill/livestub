@@ -169,3 +169,10 @@ Usage:
 
 In addition, seed value for random data generator can be passed via:
 `--seed 1234`
+
+## Development
+
+Documentation is generated during every release from `docs-sources` directory.
+It can be manually regenerated when needed by calling `sbt docs/mdoc`.
+
+To release new version use `sbt release`.
