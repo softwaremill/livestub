@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/softwaremill/livestub.svg?branch=master)](https://travis-ci.org/softwaremill/livestub)
 [![Docker Pulls](https://img.shields.io/docker/pulls/softwaremill/sttp.livestub.svg)](https://hub.docker.com/r/softwaremill/sttp.livestub/)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/softwaremill/sttp.livestub)
+[![ImageLayers](https://images.microbadger.com/badges/image/softwaremill/sttp.livestub.svg)](https://microbadger.com/#/images/softwaremill/sttp.livestub)
 [![Scala Steward badge](https://img.shields.io/badge/Scala_Steward-helping-brightgreen.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.softwaremill.sttp.livestub/livestub-app_2.13/badge.svg)](https://search.maven.org/search?q=g:com.softwaremill.sttp.livestub)
 
@@ -14,7 +14,7 @@ With livestub you can easly setup http server that behaves exactly as you would 
 ### launch
  - **coursier**
 
-    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.2.0 -- -p 7070`
+    `coursier launch com.softwaremill.sttp.livestub:livestub-app_2.13:0.2.1 -- -p 7070`
 
 - **docker**
 
@@ -66,12 +66,6 @@ curl -X POST 'localhost:7070/__set' \
 -d '{"when":{"method":"GET", "url":"dogs/**"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
 ```
 
-wildcard query param: (this one catches all the query parameters for `/dogs`, example: `/dogs?id=1&breed=bulldog`)
-```bash
-curl -X POST 'localhost:7070/__set' \
--d '{"when":{"method":"GET", "url":"dogs?*"}, "then": {"statusCode":200, "body":{"status": "cheerful"} }}'
-```
-
 ### additional methods
 
 clear stubbed routes
@@ -98,7 +92,7 @@ curl -X POST 'localhost:7070/__set_many' \
 ### stubbing from code - sdk
 
 ```scala
-libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.2.0"
+libraryDependencies += "com.softwaremill.sttp.livestub" % "livestub-sdk" % "0.2.1"
 ```
 
 Given a bunch of imports
