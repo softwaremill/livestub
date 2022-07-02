@@ -7,7 +7,7 @@ import sbt.Def
 val http4sVersion = "0.23.12"
 val circeVersion = "0.14.2"
 val circeYamlVersion = "0.14.1"
-val tapirVersion = "1.0.0-M9"
+val tapirVersion = "1.0.1"
 val sttpClientVersion = "3.6.2"
 val declineVersion = "2.3.0"
 
@@ -27,7 +27,7 @@ val loggingDependencies = Seq(
 
 val apiDocsDependencies = Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % tapirVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % tapirVersion,
+  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml" % "0.2.1",
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirVersion
 )
 
