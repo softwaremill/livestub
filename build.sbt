@@ -8,7 +8,7 @@ val http4sVersion = "0.23.14"
 val circeVersion = "0.14.2"
 val circeYamlVersion = "0.14.1"
 val tapirVersion = "1.0.4"
-val sttpClientVersion = "3.7.2"
+val sttpClientVersion = "3.7.4"
 val declineVersion = "2.3.0"
 
 val jsonDependencies = Seq(
