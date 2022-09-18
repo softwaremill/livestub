@@ -4,7 +4,7 @@ import com.softwaremill.Publish.updateDocs
 import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
-val http4sVersion = "0.23.15"
+val http4sVersion = "0.23.16"
 val circeVersion = "0.14.2"
 val circeYamlVersion = "0.14.1"
 val tapirVersion = "1.1.0"
@@ -22,7 +22,7 @@ val jsonDependencies = Seq(
 val loggingDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
   "ch.qos.logback" % "logback-classic" % "1.4.1",
-  "org.typelevel" %% "log4cats-slf4j" % "2.4.0"
+  "org.typelevel" %% "log4cats-slf4j" % "2.5.0"
 )
 
 val apiDocsDependencies = Seq(
