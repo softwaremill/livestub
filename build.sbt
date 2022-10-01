@@ -7,8 +7,9 @@ import sbt.Def
 val http4sVersion = "0.23.16"
 val circeVersion = "0.14.2"
 val circeYamlVersion = "0.14.1"
-val tapirVersion = "1.1.1"
+val tapirVersion = "1.1.2"
 val sttpClientVersion = "3.8.2"
+
 val declineVersion = "2.3.1"
 
 val jsonDependencies = Seq(
