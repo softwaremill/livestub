@@ -5,8 +5,8 @@ import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
 val http4sVersion = "0.23.16"
-val circeVersion = "0.14.2"
-val circeYamlVersion = "0.14.1"
+val circeVersion = "0.14.3"
+val circeYamlVersion = "0.14.2"
 val tapirVersion = "1.1.2"
 val sttpClientVersion = "3.8.3"
 
@@ -138,7 +138,7 @@ lazy val openapi = project
     name := "openapi",
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
-      "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.8.0" % Test,
+      "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.8.1" % Test,
       "org.scalatest" %% "scalatest" % "3.2.14" % Test
     ) ++ jsonDependencies
   )
