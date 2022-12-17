@@ -10,7 +10,7 @@ val circeYamlVersion = "0.14.2"
 val tapirVersion = "1.1.2"
 val sttpClientVersion = "3.8.5"
 
-val declineVersion = "2.4.0"
+val declineVersion = "2.4.1"
 
 val jsonDependencies = Seq(
   "io.circe" %% "circe-core" % circeVersion,
