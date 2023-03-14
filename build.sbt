@@ -71,7 +71,7 @@ lazy val app: Project = (project in file("app"))
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "org.http4s" %% "http4s-dsl" % http4sVersion,
-      "org.http4s" %% "http4s-blaze-server" % "0.23.13",
+      "org.http4s" %% "http4s-blaze-server" % "0.23.14",
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
       "com.monovore" %% "decline" % declineVersion,
       "com.monovore" %% "decline-effect" % declineVersion,
