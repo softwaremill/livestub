@@ -102,7 +102,7 @@ lazy val sdk: Project = (project in file("sdk"))
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.15" % Test,
-      "org.typelevel" %% "cats-effect" % "3.4.11",
+      "org.typelevel" %% "cats-effect" % "3.5.0",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
       "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0" % Test
     )
