@@ -43,7 +43,7 @@ lazy val dockerSettings = Seq(
 
 lazy val commonSettings: Seq[Def.Setting[_]] = commonSmlBuildSettings ++ ossPublishSettings ++ Seq(
   organization := "com.softwaremill.sttp.livestub",
-  scalaVersion := "2.13.10",
+  scalaVersion := "2.13.11",
   scalafmtOnCompile := false,
   scmInfo := Some(
     ScmInfo(
