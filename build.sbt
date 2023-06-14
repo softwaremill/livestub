@@ -4,7 +4,7 @@ import com.softwaremill.Publish.updateDocs
 import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
-val http4sVersion = "0.23.19"
+val http4sVersion = "0.23.20"
 val circeVersion = "0.14.3"
 val circeYamlVersion = "0.14.2"
 val tapirVersion = "1.1.2"
@@ -43,7 +43,7 @@ lazy val dockerSettings = Seq(
 
 lazy val commonSettings: Seq[Def.Setting[_]] = commonSmlBuildSettings ++ ossPublishSettings ++ Seq(
   organization := "com.softwaremill.sttp.livestub",
-  scalaVersion := "2.13.10",
+  scalaVersion := "2.13.11",
   scalafmtOnCompile := false,
   scmInfo := Some(
     ScmInfo(
@@ -71,13 +71,13 @@ lazy val app: Project = (project in file("app"))
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "org.http4s" %% "http4s-dsl" % http4sVersion,
-      "org.http4s" %% "http4s-blaze-server" % "0.23.14",
+      "org.http4s" %% "http4s-blaze-server" % "0.23.15",
       "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % tapirVersion,
       "com.monovore" %% "decline" % declineVersion,
       "com.monovore" %% "decline-effect" % declineVersion,
       "com.softwaremill.common" %% "tagging" % "2.3.4",
       "org.typelevel" %% "cats-core" % "2.9.0",
-      "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.16" % Test,
       "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
@@ -101,7 +101,7 @@ lazy val sdk: Project = (project in file("sdk"))
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
-      "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.16" % Test,
       "org.typelevel" %% "cats-effect" % "3.5.0",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
       "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0" % Test
@@ -139,7 +139,7 @@ lazy val openapi = project
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
       "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.8.3" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.15" % Test
+      "org.scalatest" %% "scalatest" % "3.2.16" % Test
     ) ++ jsonDependencies
   )
 
