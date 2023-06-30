@@ -4,7 +4,7 @@ import com.softwaremill.Publish.updateDocs
 import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
-val http4sVersion = "0.23.21"
+val http4sVersion = "0.23.22"
 val circeVersion = "0.14.3"
 val circeYamlVersion = "0.14.2"
 val tapirVersion = "1.1.2"
@@ -102,7 +102,7 @@ lazy val sdk: Project = (project in file("sdk"))
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
       "org.scalatest" %% "scalatest" % "3.2.16" % Test,
-      "org.typelevel" %% "cats-effect" % "3.5.0",
+      "org.typelevel" %% "cats-effect" % "3.5.1",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
       "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0" % Test
     )
