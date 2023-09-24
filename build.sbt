@@ -28,7 +28,7 @@ val loggingDependencies = Seq(
 
 val apiDocsDependencies = Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % tapirVersion,
-  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml" % "0.2.1",
+  "com.softwaremill.sttp.apispec" %% "openapi-circe-yaml" % "0.6.1",
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % tapirVersion
 )
 
