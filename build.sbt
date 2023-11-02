@@ -6,7 +6,7 @@ import sbt.Def
 
 val http4sVersion = "0.23.23"
 val circeVersion = "0.14.3"
-val circeYamlVersion = "0.14.2"
+val circeYamlVersion = "1.15.0"
 val tapirVersion = "1.1.2"
 val sttpClientVersion = "3.9.0"
 
