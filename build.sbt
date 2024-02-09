@@ -8,7 +8,7 @@ val http4sVersion = "0.23.25"
 val circeVersion = "0.14.3"
 val circeYamlVersion = "0.14.2"
 val tapirVersion = "1.1.2"
-val sttpClientVersion = "3.9.2"
+val sttpClientVersion = "3.9.3"
 
 val declineVersion = "2.4.1"
 
