@@ -77,7 +77,7 @@ lazy val app: Project = (project in file("app"))
       "com.monovore" %% "decline-effect" % declineVersion,
       "com.softwaremill.common" %% "tagging" % "2.3.5",
       "org.typelevel" %% "cats-core" % "2.12.0",
-      "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0" % Test
     ) ++ loggingDependencies ++ apiDocsDependencies
   )
@@ -101,7 +101,7 @@ lazy val sdk: Project = (project in file("sdk"))
     libraryDependencies ++= Seq(
       "com.softwaremill.sttp.client3" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-sttp-client" % tapirVersion,
-      "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test,
       "org.typelevel" %% "cats-effect" % "3.5.4",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClientVersion % Test,
       "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0" % Test
@@ -139,7 +139,7 @@ lazy val openapi = project
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-yaml" % circeYamlVersion,
       "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.9.0" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.18" % Test
+      "org.scalatest" %% "scalatest" % "3.2.19" % Test
     ) ++ jsonDependencies
   )
 
