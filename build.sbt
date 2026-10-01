@@ -128,7 +128,7 @@ lazy val openapi = project
     ) ++ jsonDependencies
   )
 
-lazy val rootProject = (project in file("."))
+lazy val root = rootProject
   .settings(
     publishArtifact := false,
     name := "livestub",
@@ -142,4 +142,4 @@ lazy val rootProject = (project in file("."))
     }.value),
     compileDocumentation := (docs / mdoc).toTask(" --out target/generated-doc").value
   )
-  .aggregate(app, api, sdk, docs, openapi)
+  .autoAggregate
