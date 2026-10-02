@@ -4,6 +4,8 @@ import com.softwaremill.Publish.updateDocs
 import com.softwaremill.UpdateVersionInDocs
 import sbt.Def
 
+val compileDocumentation: TaskKey[Unit] = taskKey[Unit]("Compiles documentation throwing away its output")
+
 val http4sVersion = "0.23.28"
 val circeVersion = "0.14.4"
 val circeYamlVersion = "0.14.2"
@@ -41,28 +43,20 @@ lazy val dockerSettings = Seq(
   Docker / version := { version.value.replace("+", "_") }
 )
 
-lazy val commonSettings: Seq[Def.Setting[_]] = commonSmlBuildSettings ++ ossPublishSettings ++ Seq(
-  organization := "com.softwaremill.sttp.livestub",
-  scalaVersion := "2.13.15",
-  scalafmtOnCompile := false,
-  scmInfo := Some(
-    ScmInfo(
-      url("https://github.com/softwaremill/livestub"),
-      "git@github.com:softwaremill/livestub.git"
-    )
-  ),
-  updateDocs := Def.taskDyn {
-    val files1 =
-      UpdateVersionInDocs(sLog.value, organization.value, version.value, List(file("docs-sources") / "README.md"))
-    Def.task {
-      (docs / mdoc).toTask("").value
-      files1 ++ Seq(file("generated-docs"), file("README.md"))
-    }
-  }.value
+commonSmlBuildSettings
+ossPublishSettings
+
+organization := "com.softwaremill.sttp.livestub"
+scalaVersion := "2.13.18"
+scalafmtOnCompile := false
+scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/softwaremill/livestub"),
+    "git@github.com:softwaremill/livestub.git"
+  )
 )
 
 lazy val app: Project = (project in file("app"))
-  .settings(commonSettings)
   .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .settings(dockerSettings)
@@ -84,7 +78,6 @@ lazy val app: Project = (project in file("app"))
   .dependsOn(api, openapi)
 
 lazy val api: Project = (project in file("api"))
-  .settings(commonSettings)
   .settings(
     name := "livestub-api",
     libraryDependencies ++= Seq(
@@ -95,7 +88,6 @@ lazy val api: Project = (project in file("api"))
   )
 
 lazy val sdk: Project = (project in file("sdk"))
-  .settings(commonSettings)
   .settings(
     name := "livestub-sdk",
     libraryDependencies ++= Seq(
@@ -109,14 +101,8 @@ lazy val sdk: Project = (project in file("sdk"))
   )
   .dependsOn(api, app % Test)
 
-val compileDocumentation: TaskKey[Unit] = taskKey[Unit]("Compiles documentation throwing away its output")
-compileDocumentation := {
-  (docs / mdoc).toTask(" --out target/generated-doc").value
-}
-
 lazy val docs = project
   .in(file("generated-docs")) // important: it must not be docs/
-  .settings(commonSettings)
   .enablePlugins(MdocPlugin)
   .settings(
     publishArtifact := false,
@@ -133,7 +119,6 @@ lazy val docs = project
 
 lazy val openapi = project
   .in(file("openapi"))
-  .settings(commonSettings)
   .settings(
     name := "openapi",
     libraryDependencies ++= Seq(
@@ -143,7 +128,18 @@ lazy val openapi = project
     ) ++ jsonDependencies
   )
 
-lazy val rootProject = (project in file("."))
-  .settings(commonSettings)
-  .settings(publishArtifact := false, name := "livestub")
-  .aggregate(app, api, sdk, docs, openapi)
+lazy val root = rootProject
+  .settings(
+    publishArtifact := false,
+    name := "livestub",
+    updateDocs := Def.uncached(Def.taskDyn {
+      val files1 =
+        UpdateVersionInDocs(sLog.value, organization.value, version.value, List(file("docs-sources") / "README.md"))
+      Def.task {
+        (docs / mdoc).toTask("").value
+        files1 ++ Seq(file("generated-docs"), file("README.md"))
+      }
+    }.value),
+    compileDocumentation := (docs / mdoc).toTask(" --out target/generated-doc").value
+  )
+  .autoAggregate
