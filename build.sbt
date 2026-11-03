@@ -36,7 +36,7 @@ val apiDocsDependencies = Seq(
 
 lazy val dockerSettings = Seq(
   dockerExposedPorts := Seq(7070),
-  dockerBaseImage := "openjdk:8u212-jdk-stretch",
+  dockerBaseImage := "eclipse-temurin:25-jdk-jammy",
   dockerUsername := Some("softwaremill"),
   Docker / packageName := "sttp.livestub",
   dockerUpdateLatest := true,
